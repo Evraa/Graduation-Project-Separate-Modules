@@ -1,8 +1,10 @@
 # For any model
 models/*/dev/data
-models/*/dev/test_images
+models/*/*/test_image
+models/*/*/test_video
 models/*/model
 
 
 # Python ignores
 __pycache__
+.vscode

@@ -4,22 +4,25 @@ import torch
 from facenet_pytorch import MTCNN
 import torch.nn.functional as F
 from torchvision import transforms
-import os, argparse
+import os, argparse, sys
 import pprint
-#local imports
-from consts import _class_names
+#global variables
+_class_names = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
 
 """Initializing global variables"""
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 #emotions boundry boxes colors
 emotion_color_dict = {
-    'angry': (225,33,33),
-    'sad': (64,55,128),
-    'happy': (84,183,84),
-    'neutral': (24,31,49)
+    'angry': (196,59,73),       #red
+    'sad': (126,128,129),       #grey
+    'happy': (169,216,39),      #yellow
+    'neutral': (71,245,64),     #green
+    'surprise': (255,171,0),    #orange
+    'disgust': (255,0,251),     #purple
+    'fear': (58,69,197)         #blue
 }
-
+# load the font
 fnt = ImageFont.truetype('font/BebasNeue-Regular.ttf', 15)
 
 def load_model(model_path=None):
@@ -72,14 +75,33 @@ def parse_model():
         print(i, ': ',model)
     model_index = int(input ("Pick one of these models.. (index)>> "))
     assert model_index < len(models)
+    assert model_index > -1
     return models_path+'/'+models[model_index]
 
-if __name__ == '__main__':
-    model_name = parse_model()
+def assert_test_material(args):
+    if args.mode == "v":
+        if not os.path.exists("test_video"):
+            print ("Error: No such a directory to test (test_video)")
+            print ("Please create one with the desired video to test")
+            sys.exit(0)
+    elif args.mode == "i":
+        if not os.path.exists("test_image"):
+            print ("Error: No such a directory to test (test_image)")
+            print ("Please create one with the desired image to test")
+            sys.exit(0)
+    else:
+        print ("Error: You need to specify either v or i")
+        print ("Ex: python predict.py -m v")
+        sys.exit(0)
 
+
+def predic_image(model_name):
     root_dir = 'test_image'
     output_dir = 'test_image/results'
+    if not os.path.exists(output_dir):  os.mkdir(output_dir)
+
     for img_name in os.listdir(root_dir):
+        # skip the result folder x')
         if img_name == 'results': continue
         img_path = os.path.join(root_dir, img_name)
         img = Image.open(img_path).convert('RGB')
@@ -88,3 +110,23 @@ if __name__ == '__main__':
         result_img_name = 'output_'+img_name 
         output_path = os.path.join(output_dir, result_img_name)
         img.save(output_path)
+
+
+def predict_video():
+    pass
+
+if __name__ == '__main__':
+
+    # Parse and assert input
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mode",  required=False, default="i")  
+    args = parser.parse_args()
+    assert_test_material(args)
+
+    # Pick the desired model
+    model_name = parse_model()
+
+    if args.mode == "v":
+        predict_video()
+    else:
+        predic_image(model_name)    
