@@ -1,0 +1,8 @@
+# For any model
+models/*/dev/data
+models/*/dev/test_images
+models/*/model
+
+
+# Python ignores
+__pycache__
