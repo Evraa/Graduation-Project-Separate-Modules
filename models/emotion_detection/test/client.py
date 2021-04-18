@@ -1,11 +1,12 @@
 #Global imports 
 import requests
-import json
+import json, jsonpickle
 import cv2
 import pprint
 import os
 import sys
 import numpy as np
+import base64
 #Global Variables
 addr = 'http://localhost:5000'
 test_url = addr + '/api/test'
@@ -29,29 +30,33 @@ def extract_frames(r_range,l_range=0,vid_id = 0):
     video_dir ="test_video" +'/'+ os.listdir("test_video")[vid_id]
     cap= cv2.VideoCapture(video_dir)
     i=0
-    data = []
+    data = {}
     while(cap.isOpened()):
         ret, frame = cap.read()
         if ret == False or i>=r_range:
             break
         if i>=l_range and i<r_range:
             # process
-            _, img_encoded = cv2.imencode('.jpg', frame)
-            img_encoded = img_encoded.tostring()
-            frame_i = {'frame_'+str(i) : img_encoded}
-            data.append(frame_i)
+            # _, img_encoded = cv2.imencode('.jpg', frame)
+            # img_encoded = img_encoded.tostring()
+            # img_encoded = base64.b64encode(img_encoded)
+            img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
+            data['frame_'+str(i)] = img_encoded
         i+=1
     
     cap.release()
     cv2.destroyAllWindows()
+    json_data = {
+        'data': data
+    }
+    json_data = jsonpickle.encode(json_data)
 
-    json_data={}
-    json_data['data'] = data
     return json_data
 
-def send_request(imgs_encoded, headers):
+
+def send_request(json_data, headers):
     # send http request with image and receive response
-    response = requests.post(test_url, data=imgs_encoded, headers=headers)
+    response = requests.post(test_url, data=json_data, headers=headers)
     return response
 
 if __name__ == '__main__':
