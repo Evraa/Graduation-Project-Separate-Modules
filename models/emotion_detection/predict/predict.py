@@ -113,7 +113,7 @@ def predic_image(model_name):
 
 
 def predict_video():
-    pass
+    print ("Use the Test Folder instead.")
 
 if __name__ == '__main__':
 

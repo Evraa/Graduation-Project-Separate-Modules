@@ -1,3 +1,8 @@
+## requirements:
+    + python
+    + pip install -r requirements
+    + download dataset, and place it at "./data/" then tar (unzip) it there.
+
 ## how to run:     
     To use a model:
         1.1- to test a video, place it at folder ./test_video
