@@ -33,13 +33,10 @@ def extract_frames(r_range,l_range=0,vid_id = 0):
     data = {}
     while(cap.isOpened()):
         ret, frame = cap.read()
-        if ret == False or i>=r_range:
+        if ret == False or i>r_range:
             break
-        if i>=l_range and i<r_range:
-            # process
-            # _, img_encoded = cv2.imencode('.jpg', frame)
-            # img_encoded = img_encoded.tostring()
-            # img_encoded = base64.b64encode(img_encoded)
+        if i>=l_range and i<=r_range:
+            
             img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
             data['frame_'+str(i)] = img_encoded
         i+=1
@@ -49,8 +46,7 @@ def extract_frames(r_range,l_range=0,vid_id = 0):
     json_data = {
         'data': data
     }
-    json_data = jsonpickle.encode(json_data)
-
+    
     return json_data
 
 
@@ -59,10 +55,19 @@ def send_request(json_data, headers):
     response = requests.post(test_url, data=json_data, headers=headers)
     return response
 
+def add_more_info(json_data):
+    json_data['emotions'] = ['sad','happy','surprise']
+    return
+
 if __name__ == '__main__':
     headers = establish_network()
     json_data = extract_frames(r_range=210, l_range=200)
+    add_more_info(json_data)
+    
+    # encode request
+    json_data = jsonpickle.encode(json_data)
     response = send_request(json_data, headers)
+    
     # decode response
     pprint.pprint(json.loads(response.text))
     # expected output: {u'message': u'image received. size=124x124'}

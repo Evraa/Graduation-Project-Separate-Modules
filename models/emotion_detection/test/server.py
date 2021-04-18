@@ -1,3 +1,4 @@
+#Global import
 from flask import Flask, request, Response
 import jsonpickle
 import numpy as np
@@ -5,6 +6,8 @@ import cv2
 import pprint
 import base64
 import json
+#local imports
+import process
 # Initialize the Flask application
 app = Flask(__name__)
 
@@ -14,21 +17,20 @@ app = Flask(__name__)
 def test():
     r = request
 
-    
     data = jsonpickle.decode(r.data)
-    data = data['data']
-    for key, value in data.items():
+    frmaes = data['data']
+    emotions = data['emotions']
+    for key, value in frmaes.items():
         print (f'this is frame {key}')
         jpg_original = base64.b64decode(value)
         jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
         img = cv2.imdecode(jpg_as_np, cv2.IMREAD_COLOR)
     
         # do some fancy processing here....
-        pprint.pprint(img)
+        state, values = process.run(img, emotions)
 
     # build a response dict to send back to client
-    response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])
-                }
+    response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])}
     # encode response using jsonpickle
     response_pickled = jsonpickle.encode(response)
 
