@@ -11,6 +11,9 @@ import numpy as np
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def load_model():
+    '''
+        Loads model to process with.
+    '''
     try:
         model_path = '../model/'
         model_path += os.listdir(model_path)[0]
@@ -20,28 +23,27 @@ def load_model():
         print ("Error: No models to test with")
         return False, None
 
-def check_arg(img, emotions):
-    if len(emotions) <= 0:
-        print ("Error: No Emotions selected from request")
-        return False, None
-   
 
 def predict_emotion(img,model):
     """Predicting emotions"""
-    # img = Image.fromarray(np.uint8(img)).convert('RGB')
+    # Convert image to RGB
+    # Note: it will not be RGB cuz we already receiving grayscale images
+    #       but the Goddamn mtcnn model needs a 3 chanelled images :")
     img = img.convert('RGB')
 
     mtcnn = MTCNN(keep_all=True)
     all_boxes = mtcnn.detect(img)
 
     # Check if MTCNN detect good faces
+    # TODO: This part should detect THE best faces there. larger, most probable, centered .. etc.
     good_boxes = []
     for index, proba in enumerate(all_boxes[1]):
         if(proba > 0.9):
             good_boxes.append(all_boxes[0][index])
 
-    
+    # Test/Evaluate
     model.eval()
+    # Again, this should not be a for loop.
     for boxes in good_boxes:
         img_cropped = img.crop(boxes)
 
@@ -57,8 +59,7 @@ def predict_emotion(img,model):
     return output
 
 
-def run(img, emotions):
-    check_arg(img, emotions)
+def run(img):
     model = load_model()
     output = predict_emotion(img, model)
 

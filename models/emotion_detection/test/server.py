@@ -3,14 +3,13 @@ from flask import Flask, request, Response
 import jsonpickle
 import numpy as np
 import cv2
-import pprint
 import base64
-import json
 from PIL import Image, ImageOps
 from io import BytesIO
-
+import sys
 #local imports
 import process
+
 # Initialize the Flask application
 app = Flask(__name__)
 
@@ -27,22 +26,40 @@ def select_emotions(emotions):
 # route http posts to this method
 @app.route('/api/test', methods=['POST'])
 def test():
-    r = request
+    '''
+        Main function that gets envoked when receiving a request.
+        
+        Simply, takes json 64base decoded images, and set of desired emotions.
 
+        Decode these data, send each frame to be processed, accumelate and average results.
+
+        Then send a response with these values.
+    '''
+    r = request
+    # Decode and extract data/emotion set.
     data = jsonpickle.decode(r.data)
     frmaes = data['data']
     emotions = data['emotions']
+    # Select the desired indexes
+    if len(emotions) <= 0:
+        print ("Error: No emotions selected.")
+        sys.exit(0)
+
     emotion_indexes = select_emotions(emotions)
+    # Accumulate results here.
     result = []
+
     for key, value in frmaes.items():
         print (f'this is frame {key}')
-
+        # Decode image.
         byte_data = base64.b64decode(value)
         image_data = BytesIO(byte_data)
         img = Image.open(image_data)
         
-        # do some fancy processing here....
-        state, values = process.run(img, emotions)
+        # Some fancy processing here....
+        state, values = process.run(img)
+
+        # Store results.
         frame_i = []
         if state:
             for i,out in enumerate(values):
@@ -50,6 +67,7 @@ def test():
                     frame_i.append(out.item())
             
                 result.append(frame_i)
+    # Report results
     result = np.array(result)
     
     # build a response dict to send back to client

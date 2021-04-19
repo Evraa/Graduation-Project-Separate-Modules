@@ -21,6 +21,11 @@ def establish_network():
     return headers
 
 def extract_frames(r_range,l_range=0,vid_id = 0):
+    '''
+        Truncate video into frames.
+
+        Decode each frame and add it to a json variable to be encoded and sent.
+    '''
     # Opens the Video file
     if not os.path.exists("test_video") or len(os.listdir("test_video")) == 0:
         print ("Error: No video to process")
@@ -66,7 +71,12 @@ def send_request(json_data, headers):
     return response
 
 def add_more_info(json_data):
-    json_data['emotions'] = ['sad','happy','surprise']
+    '''
+        Select a handful set of emotions to be detected.
+
+        all_emotions = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
+    '''
+    json_data['emotions'] = ['happy','sad','surprise']
     return
 
 if __name__ == '__main__':
