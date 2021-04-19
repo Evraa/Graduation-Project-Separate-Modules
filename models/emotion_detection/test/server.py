@@ -14,6 +14,15 @@ import process
 # Initialize the Flask application
 app = Flask(__name__)
 
+_all_emotions = {0:'angry', 1:'disgust', 2:'fear', 3:'happy', 4:'sad', 5:'surprise', 6:'neutral'}
+
+
+def select_emotions(emotions):
+    indexes = []
+    for key, value in _all_emotions.items():
+        if value in emotions: indexes.append(key)
+    return indexes
+
 
 # route http posts to this method
 @app.route('/api/test', methods=['POST'])
@@ -23,22 +32,34 @@ def test():
     data = jsonpickle.decode(r.data)
     frmaes = data['data']
     emotions = data['emotions']
+    emotion_indexes = select_emotions(emotions)
+    result = []
     for key, value in frmaes.items():
         print (f'this is frame {key}')
 
-        # jpg_original = base64.b64decode(value)
-        # jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
-        # img = cv2.imdecode(jpg_as_np, cv2.IMREAD_COLOR)
-        
         byte_data = base64.b64decode(value)
         image_data = BytesIO(byte_data)
         img = Image.open(image_data)
         
         # do some fancy processing here....
         state, values = process.run(img, emotions)
-
+        frame_i = []
+        if state:
+            for i,out in enumerate(values):
+                if i in emotion_indexes:
+                    frame_i.append(out.item())
+            
+                result.append(frame_i)
+    result = np.array(result)
+    
     # build a response dict to send back to client
-    response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])}
+    result_mean = np.mean(result, axis=0)
+    response = {}
+    k = 0
+    for i in emotion_indexes:
+        response[_all_emotions[i]] = result_mean[k]
+        k += 1
+        
     # encode response using jsonpickle
     response_pickled = jsonpickle.encode(response)
 

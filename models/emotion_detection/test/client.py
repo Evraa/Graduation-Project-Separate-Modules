@@ -79,5 +79,4 @@ if __name__ == '__main__':
     response = send_request(json_data, headers)
     
     # decode response
-    pprint.pprint(json.loads(response.text))
-    # expected output: {u'message': u'image received. size=124x124'}
+    pprint.pprint(jsonpickle.decode(response.text))

@@ -7,23 +7,8 @@ from torchvision import transforms
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
-_class_names = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
-
 """Initializing global variables"""
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-#emotions boundry boxes colors
-emotion_color_dict = {
-    'angry': (196,59,73),       #red
-    'sad': (126,128,129),       #grey
-    'happy': (169,216,39),      #yellow
-    'neutral': (71,245,64),     #green
-    'surprise': (255,171,0),    #orange
-    'disgust': (255,0,251),     #purple
-    'fear': (58,69,197)         #blue
-}
-# load the font
-fnt = ImageFont.truetype('font/BebasNeue-Regular.ttf', 15)
 
 def load_model():
     try:
@@ -55,6 +40,7 @@ def predict_emotion(img,model):
         if(proba > 0.9):
             good_boxes.append(all_boxes[0][index])
 
+    
     model.eval()
     for boxes in good_boxes:
         img_cropped = img.crop(boxes)
@@ -66,30 +52,14 @@ def predict_emotion(img,model):
 
         with torch.no_grad():
             output = F.softmax(model(img_tensor.view(-1, 3, 224, 224))).squeeze()
-        prob_emotion = output[torch.argmax(output).item()].item()
-        pred_emotion = _class_names[torch.argmax(output)]
 
-        emotion_color = emotion_color_dict[pred_emotion]
-
-        left, top, right, bottom = boxes
-        x, y = left+5, bottom+2.5
-
-        emotion_text = f'{pred_emotion} {round(prob_emotion, 2)}'
-
-        w, h = fnt.getsize(emotion_text)
-
-        draw = ImageDraw.Draw(img)
-        draw.rectangle(boxes, outline=emotion_color)
-        draw.rectangle((x-5,y-2.5,x+w+5,y+h+2.5), fill=emotion_color)
-        draw.text((x,y), emotion_text, font=fnt, fill=(255,255,255))
-    return img
+        
+    return output
 
 
 def run(img, emotions):
     check_arg(img, emotions)
     model = load_model()
-    img = predict_emotion(img, model)
-    img.save("img.jpg")
+    output = predict_emotion(img, model)
 
-
-    return True, []
+    return True, output
