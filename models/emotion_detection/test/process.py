@@ -43,7 +43,8 @@ def check_arg(img, emotions):
 
 def predict_emotion(img,model):
     """Predicting emotions"""
-    img = Image.fromarray(np.uint8(img)).convert('RGB')
+    # img = Image.fromarray(np.uint8(img)).convert('RGB')
+    img = img.convert('RGB')
 
     mtcnn = MTCNN(keep_all=True)
     all_boxes = mtcnn.detect(img)

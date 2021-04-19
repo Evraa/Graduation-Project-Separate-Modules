@@ -6,6 +6,9 @@ import cv2
 import pprint
 import base64
 import json
+from PIL import Image, ImageOps
+from io import BytesIO
+
 #local imports
 import process
 # Initialize the Flask application
@@ -22,10 +25,15 @@ def test():
     emotions = data['emotions']
     for key, value in frmaes.items():
         print (f'this is frame {key}')
-        jpg_original = base64.b64decode(value)
-        jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
-        img = cv2.imdecode(jpg_as_np, cv2.IMREAD_COLOR)
-    
+
+        # jpg_original = base64.b64decode(value)
+        # jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+        # img = cv2.imdecode(jpg_as_np, cv2.IMREAD_COLOR)
+        
+        byte_data = base64.b64decode(value)
+        image_data = BytesIO(byte_data)
+        img = Image.open(image_data)
+        
         # do some fancy processing here....
         state, values = process.run(img, emotions)
 

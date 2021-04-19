@@ -7,6 +7,9 @@ import os
 import sys
 import numpy as np
 import base64
+from PIL import Image, ImageOps
+from io import BytesIO
+
 #Global Variables
 addr = 'http://localhost:5000'
 test_url = addr + '/api/test'
@@ -36,8 +39,15 @@ def extract_frames(r_range,l_range=0,vid_id = 0):
         if ret == False or i>r_range:
             break
         if i>=l_range and i<=r_range:
-            
-            img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
+            # img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
+            # frame = Image.fromarray(np.uint8(frame)).convert('RGB')
+
+            frame = Image.fromarray(np.uint8(frame)).convert('L')
+
+            output_buffer = BytesIO()
+            frame.save(output_buffer, format='JPEG')
+            byte_data = output_buffer.getvalue()
+            img_encoded = base64.b64encode(byte_data).decode()
             data['frame_'+str(i)] = img_encoded
         i+=1
     
