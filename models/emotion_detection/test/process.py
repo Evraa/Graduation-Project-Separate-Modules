@@ -54,7 +54,7 @@ def predict_emotion(img,model):
 
         with torch.no_grad():
             output = F.softmax(model(img_tensor.view(-1, 3, 224, 224))).squeeze()
-
+            
         
     return output
 

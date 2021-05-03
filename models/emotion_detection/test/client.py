@@ -76,7 +76,7 @@ def add_more_info(json_data):
 
         all_emotions = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
     '''
-    json_data['emotions'] = ['happy','sad','surprise']
+    json_data['emotions'] = ['happy', 'sad', 'surprise','neutral']
     return
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 # For any model
-models/*/dev/data
+models/*/dev/data/fer*
+models/*/dev/data/data_png
 models/*/*/test_image
 models/*/*/test_video
 models/*/model

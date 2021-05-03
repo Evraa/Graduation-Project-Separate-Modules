@@ -15,6 +15,7 @@ import time
 import consts
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print (device)
 # Implementing the model
 
 def model_init(num_classes):
@@ -130,7 +131,8 @@ def run_train():
     for epoch in range(consts._epochs):
         print(f'=== EPOCH {epoch+1} / {consts._epochs} ===')
         train(model, criterion,train_dataloader, test_dataloader,optimizer)
-        test(model, class_names, test_dataloader, criterion)
+        if epoch >= 98:
+            test(model, class_names, test_dataloader, criterion)
         exp_lr_scheduler.step()
      
         #save model and replace after each epoch.

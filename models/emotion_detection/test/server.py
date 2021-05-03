@@ -67,6 +67,9 @@ def test():
                     frame_i.append(out.item())
             
                 result.append(frame_i)
+        else:
+            print ("Error: Unable to process")
+            sys.exit(0)
     # Report results
     result = np.array(result)
     
