@@ -79,7 +79,6 @@ def data_load(eval_mode=False):
 def train(model, criterion,train_dataloader, test_dataloader, optimizer):
     print('=== TRAINING ===')
     model.train()
-    counter = 0
     acc_counter = 0
     loss_counter = 0
     batch_counter = 0
@@ -104,8 +103,8 @@ def train(model, criterion,train_dataloader, test_dataloader, optimizer):
         optimizer.step()
 
         accs.append(round(acc_counter/batch_counter, 4))
-        if step % 101 == 0:
-            print(f'Accuracy: {round(acc_counter/batch_counter, 4)} \t Loss: {loss_counter/counter}')
+        if step % 100 == 0:
+            print(f'Accuracy: {round(acc_counter/batch_counter, 4)} \t Loss: {loss_counter/(step+1)}')
     
     return sum(accs) / len(accs)
 
