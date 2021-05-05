@@ -30,7 +30,6 @@ def model_init(num_classes,lr=0.001):
     #read the model RESNET18
     model = models.resnet18(pretrained=True)
     num_features = model.fc.in_features
-    print (f"resnet18 no. of features before fc layer: {num_features}")
     # model.fc = nn.Linear(num_features, num_classes)
     model.fc = nn.Linear(num_features, num_features//4)
     model.fc_2 = nn.Linear( num_features//4, num_classes) #intermediate hidden layer for more classification acc.
@@ -105,7 +104,7 @@ def train(model, criterion,train_dataloader, test_dataloader, optimizer):
         optimizer.step()
 
         accs.append(round(acc_counter/batch_counter, 4))
-        if step % 100 == 0:
+        if step % 101 == 0:
             print(f'Accuracy: {round(acc_counter/batch_counter, 4)} \t Loss: {loss_counter/counter}')
     
     return sum(accs) / len(accs)
