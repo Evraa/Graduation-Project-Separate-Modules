@@ -11,7 +11,7 @@ import train
 
 
 if __name__ == '__main__':
-
+    
     consts.init()
     parser = argparse.ArgumentParser()
     parser.add_argument("-es", "--epoch_size",  required=False, default=100)   
