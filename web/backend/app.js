@@ -28,3 +28,4 @@ app.use('*', checkUser);
 
 app.use('/api/job', require('./routes/JobRoutes'));
 app.use('/api/user', require('./routes/UserRoutes'));
+app.use('/api/question', require('./routes/َQuestionRoutes'));

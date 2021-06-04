@@ -74,8 +74,7 @@ const view = (req, res) => {
         }
     })
     .catch( err => {
-        console.log(err);
-        res.status(500).json();
+        res.status(404).json({errors: [{"msg": "invalid job ID"}]});    
     });
 };
 
@@ -127,8 +126,7 @@ const enable = (req, res) => {
         }
     })
     .catch( err => {
-        console.log(err);
-        res.status(500).json();
+        res.status(404).json({errors: [{"msg": "invalid job ID"}]});
     });
 };
 
@@ -149,8 +147,7 @@ const disable = (req, res) => {
         }
     })
     .catch( err => {
-        console.log(err);
-        res.status(500).json();
+        res.status(404).json({errors: [{"msg": "invalid job ID"}]});
     });
 };
 
@@ -190,8 +187,7 @@ const update  = (req, res) => {
         }
     })
     .catch( err => {
-        console.log(err);
-        res.status(500).json();
+        res.status(404).json({errors: [{"msg": "invalid job ID"}]});
     });
 };
 
