@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'applicant',
+        lowercase: true,
         enum: ['admin', 'hr', 'applicant']
     },
     name: {
@@ -27,11 +28,11 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     picture: String,
-    jobs: [{title: String, ID: mongoose.ObjectId}],
-    applications: [{title: String, ID: mongoose.ObjectId}],
+    jobs: [{title: String, ID: mongoose.ObjectId}]|null,
+    applications: [{title: String, ID: mongoose.ObjectId}]|null,
     applicantsNum: Number,
     resume: String,
-    answers: [{questionID: mongoose.ObjectId, answer: String}]
+    answers: [{questionID: mongoose.ObjectId, answer: String}]|null
 
 }, {timestamps: true});
 
