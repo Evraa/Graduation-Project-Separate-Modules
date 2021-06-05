@@ -9,16 +9,16 @@ const applicationSchema = new mongoose.Schema({
         type: mongoose.ObjectId,
         required: true
     },
-    users: [mongoose.ObjectId],
     answers: {
         type: [{questionID: mongoose.ObjectId, answer: String}],
         required: true,
     },
     resume: {
-        type: String,
-        required: true,
+        type: {url: String, name: String, date: Date}
     },
-    video: String
+    video: {
+        type: {url: String, name: String, date: Date}
+    }
 }, {timestamps: true});
 
 const Application = mongoose.model('Application', applicationSchema);
