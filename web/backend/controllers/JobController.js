@@ -107,7 +107,7 @@ const store = (req, res) => {
         if (!req.user.jobs) {
             req.user.jobs = [];
         }
-        req.user.jobs.push(job.id);
+        req.user.jobs.push({ID: job.id, title: job.title});
         return req.user.updateOne({jobs: req.user.jobs});
     }).catch(err => {
         res.status(400).json(err);

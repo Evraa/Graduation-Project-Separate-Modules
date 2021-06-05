@@ -106,7 +106,7 @@ const store = async (req, res) => {
                 if (!req.user.applications) {
                     req.user.applications = [];
                 }
-                req.user.applications.push(application.id);
+                req.user.applications.push({ID: application.id, title: job.title});
                 req.user.updateOne({applications: req.user.applications}, (err, res) => {
                     if (err) {
                         console.log(err);
