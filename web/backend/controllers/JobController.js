@@ -86,11 +86,11 @@ const verifyStore = () => {
         body('description').notEmpty().withMessage("description is required").bail()
         .isString().withMessage("description should be a string"),
 
-        body('questions').notEmpty().withMessage("questions is required").bail()
+        body('questions').notEmpty().withMessage("questions are required").bail()
         .isArray().withMessage("questions should be an array"),
         
-        body('videoRequired').notEmpty().withMessage("vedioRequired is required").bail()
-        .isBoolean().withMessage("vedioRequired should be a boolean"),
+        body('videoRequired').notEmpty().withMessage("videoRequired is required").bail()
+        .isBoolean().withMessage("videoRequired should be a boolean"),
     ];
 };
 
@@ -104,8 +104,13 @@ const store = (req, res) => {
     const data = lo.pick(req.body, ['title', 'description', 'questions', 'videoRequired']);
     Job.create(data).then(job => {
         res.json(job);
-    }).catch(error => {
-        res.status(400).json(error);
+        if (!req.user.jobs) {
+            req.user.jobs = [];
+        }
+        req.user.jobs.push({ID: job.id, title: job.title});
+        return req.user.updateOne({jobs: req.user.jobs});
+    }).catch(err => {
+        res.status(400).json(err);
     });
 };
 

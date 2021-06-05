@@ -17,10 +17,14 @@ router.post('/api/application/:jobID/resume', requireAuth, authorizeApplicant,
 
 router.get('/uploads/resumes/:fileName', requireAuth, applicationController.viewResume);
 
+router.delete('/uploads/resumes/:fileName', requireAuth, applicationController.destroyResume);
+
 router.post('/api/application/:jobID/video', requireAuth, authorizeApplicant,
     applicationController.verifyJobID(),
     applicationController.uploadVideo.single('video'), applicationController.storeVideo);
 
 router.get('/uploads/videos/:fileName', requireAuth, applicationController.viewVideo);
+
+router.delete('/uploads/videos/:fileName', requireAuth, applicationController.destroyVideo);
 
 module.exports = router;

@@ -1,16 +1,17 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 
-const analyzedDataSchema = new mongoose.Schema({
+const analyzedDataSchema = new Schema({
     jobID: {
-        type: mongoose.ObjectId,
+        type: Schema.Types.ObjectId,
+        ref: "Job",
         required: true
     },
     type: {
         type: String,
         required: true
     },
-    users: [mongoose.ObjectId]
+    users: [{type: Schema.Types.ObjectId, ref:'User'}]
 }, {timestamps: true});
 
-const AnalyzedData = mongoose.model('AnalyzedData', analyzedDataSchema);
+const AnalyzedData = model('AnalyzedData', analyzedDataSchema);
 module.exports = AnalyzedData;

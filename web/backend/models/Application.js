@@ -1,16 +1,18 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 
-const applicationSchema = new mongoose.Schema({
+const applicationSchema = new Schema({
     jobID: {
-        type: mongoose.ObjectId,
+        type: Schema.Types.ObjectId,
+        ref: 'Job',
         required: true
     },
     applicantID: {
-        type: mongoose.ObjectId,
+        type: Schema.Types.ObjectId,
+        ref: 'User',
         required: true
     },
     answers: {
-        type: [{questionID: mongoose.ObjectId, answer: String}],
+        type: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}],
         required: true,
     },
     resume: {
@@ -21,5 +23,5 @@ const applicationSchema = new mongoose.Schema({
     }
 }, {timestamps: true});
 
-const Application = mongoose.model('Application', applicationSchema);
+const Application = model('Application', applicationSchema);
 module.exports = Application;

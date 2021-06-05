@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 const { isEmail } = require('validator');
 const bcrypt = require("bcrypt");
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
     email: {
         type: String,
         required: true,
@@ -28,11 +28,11 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     picture: String,
-    jobs: [{title: String, ID: mongoose.ObjectId}]|null,
-    applications: [{title: String, ID: mongoose.ObjectId}]|null,
-    applicantsNum: Number,
+    jobs: [{title: String, ID: {type: Schema.Types.ObjectId, ref: 'Job'}}]|null,
+    applications: [{title: String, ID: {type: Schema.Types.ObjectId, ref: 'Application'}}]|null,
+    // applicantsNum: Number,
     resume: String,
-    answers: [{questionID: mongoose.ObjectId, answer: String}]|null
+    answers: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}]|null
 
 }, {timestamps: true});
 
@@ -55,5 +55,5 @@ userSchema.methods.isValidPassword = function(password) {
     return bcrypt.compare(password, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
+const User = model('User', userSchema);
 module.exports = User;

@@ -42,16 +42,32 @@ const verifyAnswers = () => {
         .isArray().withMessage("answers should be an array");
 };
 
-const checkForRequiredQuestions = (questions, answers) => {
-    answersMap = new Map();
-    for (const e of answers) {
-        answersMap.set(e.questionID, e.answer);
-    }
+const checkForRequiredQuestions = (questions, answersMap) => {
     for (const q of questions) {
         if (q.required && !answersMap.get(q.id))
             return q.id;
     }
     return undefined;
+};
+
+const saveQuestionAnswers = async (questions, newAnswers, user) => {
+    const oldAnswers = new Map();
+    if (!user.answers) {
+        user.answers = [];
+    }
+    for (const ans of user.answers) {
+        oldAnswers.set(ans.questionID, ans.answer);
+    }
+    added = false;
+    for (const q of questions) {
+        if (q.ID && !oldAnswers.has(q.ID) && newAnswers.has(q.id)) {
+            added = true;
+            user.answers.push({questionID: q.ID, answer: newAnswers.get(q.id)});
+        }
+    }
+    if (added) {
+        await user.updateOne({answers: user.answers});
+    }
 };
 
 // if application already exists, it updates it
@@ -66,8 +82,12 @@ const store = async (req, res) => {
         const job = await Job.findById(req.params.jobID);
         const questions = job.questions;
         const answers = req.body.answers;
-        
-        qID = checkForRequiredQuestions(questions, answers);
+        answersMap = new Map();
+        for (const e of answers) {
+            answersMap.set(e.questionID, e.answer);
+        }
+
+        qID = checkForRequiredQuestions(questions, answersMap);
         if (qID) {
             res.status(400).json({errors: [{
                 param: "answers",
@@ -76,7 +96,9 @@ const store = async (req, res) => {
             }]});
             return;
         }
-        
+        saveQuestionAnswers(questions, answersMap, req.user)
+        .catch(err => console.log(err));
+
         const data = {
             answers, 
             jobID: job.id,
@@ -88,14 +110,32 @@ const store = async (req, res) => {
             application.updateOne(data).then(updatedApp => {
                 res.json({updated: data});
             }).catch(error => {
-                res.status(400).json(error);
+                console.log(error);
             });
         }
         else {
             Application.create(data).then(application => {
                 res.json({created: application});
+                if (!job.applicationIDs) {
+                    job.applicationIDs = [];
+                }
+                job.applicationIDs.push(application.id);
+                job.updateOne({applicationIDs: job.applicationIDs}, (err, res) =>{
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+                if (!req.user.applications) {
+                    req.user.applications = [];
+                }
+                req.user.applications.push({ID: application.id, title: job.title});
+                req.user.updateOne({applications: req.user.applications}, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
             }).catch(error => {
-                res.status(400).json(error);
+                console.log(error);
             });
         }
     } catch (error) {
@@ -177,6 +217,39 @@ const viewResume = (req, res) => {
     res.download(p);
 };
 
+const destroyResume = (req, res) => {
+    const p = path.join(RESUME_PATH, req.params.fileName);
+    if (!fs.existsSync(p)) {
+        res.status(404).json({errors: [{msg: "Resume is not found"}]});
+        return;
+    }
+    const applicantID = req.params.fileName.split('_')[0];
+    if (!(req.user.role == "applicant" && req.user.id == applicantID)) {
+        res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+        return;
+    }
+    fs.unlink(p, err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    const jobID = req.params.fileName.split('_')[1].split('.')[0];
+    Application.findOne({jobID, applicantID}).then(application => {
+        if (application) {
+            application.updateOne({resume: {}}).catch(err => {
+                console.log(err);
+                return;
+            });
+        } else {
+            res.status(404).json({errors: [{msg: "Application is not found"}]});
+        }
+    })
+    .catch(err => {
+        console.log(err);
+    });
+    res.json({msg: "Resume is deleted successfully"});
+};
+
 const VIDEO_FORMATS = ['.mp4', '.mov', '.wmv', '.flv', '.avi', '.mkv', '.webm'];
 const VIDEO_PATH = 'uploads/videos';
 
@@ -250,6 +323,39 @@ const viewVideo = (req, res) => {
     res.download(p);
 };
 
+const destroyVideo = (req, res) => {
+    const p = path.join(VIDEO_PATH, req.params.fileName);
+    if (!fs.existsSync(p)) {
+        res.status(404).json({errors: [{msg: "Video is not found"}]});
+        return;
+    }
+    const applicantID = req.params.fileName.split('_')[0];
+    if (!(req.user.role == "applicant" && req.user.id == applicantID)) {
+        res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+        return;
+    }
+    fs.unlink(p, err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    const jobID = req.params.fileName.split('_')[1].split('.')[0];
+    Application.findOne({jobID, applicantID}).then(application => {
+        if (application) {
+            application.updateOne({video: {}}).catch(err => {
+                console.log(err);
+                return;
+            });
+        } else {
+            res.status(404).json({errors: [{msg: "Application is not found"}]});
+        }
+    })
+    .catch(err => {
+        console.log(err);
+    });
+    res.json({msg: "video is deleted successfully"});
+};
+
 module.exports = {
     view,
     verifyJobID,
@@ -258,7 +364,9 @@ module.exports = {
     uploadResume,
     storeResume,
     viewResume,
+    destroyResume,
     uploadVideo,
     storeVideo,
-    viewVideo
+    viewVideo,
+    destroyVideo
 };
