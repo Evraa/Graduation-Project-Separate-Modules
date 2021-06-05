@@ -177,6 +177,39 @@ const viewResume = (req, res) => {
     res.download(p);
 };
 
+const destroyResume = (req, res) => {
+    const p = path.join(RESUME_PATH, req.params.fileName);
+    if (!fs.existsSync(p)) {
+        res.status(404).json({errors: [{msg: "Resume is not found"}]});
+        return;
+    }
+    const applicantID = req.params.fileName.split('_')[0];
+    if (!(req.user.role == "applicant" && req.user.id == applicantID)) {
+        res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+        return;
+    }
+    fs.unlink(p, err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    const jobID = req.params.fileName.split('_')[1].split('.')[0];
+    Application.findOne({jobID, applicantID}).then(application => {
+        if (application) {
+            application.updateOne({resume: {}}).catch(err => {
+                console.log(err);
+                return;
+            });
+        } else {
+            res.status(404).json({errors: [{msg: "Application is not found"}]});
+        }
+    })
+    .catch(err => {
+        console.log(err);
+    });
+    res.json({msg: "Resume is deleted successfully"});
+};
+
 const VIDEO_FORMATS = ['.mp4', '.mov', '.wmv', '.flv', '.avi', '.mkv', '.webm'];
 const VIDEO_PATH = 'uploads/videos';
 
@@ -250,6 +283,39 @@ const viewVideo = (req, res) => {
     res.download(p);
 };
 
+const destroyVideo = (req, res) => {
+    const p = path.join(VIDEO_PATH, req.params.fileName);
+    if (!fs.existsSync(p)) {
+        res.status(404).json({errors: [{msg: "Video is not found"}]});
+        return;
+    }
+    const applicantID = req.params.fileName.split('_')[0];
+    if (!(req.user.role == "applicant" && req.user.id == applicantID)) {
+        res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+        return;
+    }
+    fs.unlink(p, err => {
+        if (err) {
+            console.log(err);
+        }
+    });
+    const jobID = req.params.fileName.split('_')[1].split('.')[0];
+    Application.findOne({jobID, applicantID}).then(application => {
+        if (application) {
+            application.updateOne({video: {}}).catch(err => {
+                console.log(err);
+                return;
+            });
+        } else {
+            res.status(404).json({errors: [{msg: "Application is not found"}]});
+        }
+    })
+    .catch(err => {
+        console.log(err);
+    });
+    res.json({msg: "video is deleted successfully"});
+};
+
 module.exports = {
     view,
     verifyJobID,
@@ -258,7 +324,9 @@ module.exports = {
     uploadResume,
     storeResume,
     viewResume,
+    destroyResume,
     uploadVideo,
     storeVideo,
-    viewVideo
+    viewVideo,
+    destroyVideo
 };
