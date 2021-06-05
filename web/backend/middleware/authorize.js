@@ -10,7 +10,7 @@ const authorizeAdmin = (req, res, next) => {
     return;
 };
 
-const authorizeHR= (req, res, next) => {
+const authorizeHR = (req, res, next) => {
 
     if(req.user.role !== "hr") 
     {
@@ -21,9 +21,20 @@ const authorizeHR= (req, res, next) => {
     return;
 };
 
-const authorizeAdminOrHR= (req, res, next) => {
+const authorizeAdminOrHR = (req, res, next) => {
 
     if(req.user.role !== "hr" && req.user.role !== "admin") 
+    {
+        res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+        return;
+    }
+    next();
+    return;
+};
+
+const authorizeApplicant = (req, res, next) => {
+
+    if(req.user.role !== "applicant") 
     {
         res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
         return;
@@ -35,5 +46,6 @@ const authorizeAdminOrHR= (req, res, next) => {
 module.exports = { 
     authorizeAdmin,
     authorizeHR,
-    authorizeAdminOrHR
+    authorizeAdminOrHR,
+    authorizeApplicant
 };
