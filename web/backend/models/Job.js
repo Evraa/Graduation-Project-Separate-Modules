@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 
-const jobSchema = new mongoose.Schema({
+const jobSchema = new Schema({
     title: {
         type: String,
         required: true
@@ -13,7 +13,7 @@ const jobSchema = new mongoose.Schema({
         type: [{
             body: String,
             required: {type: Boolean, default: false},
-            ID: mongoose.ObjectId
+            ID: {type: Schema.Types.ObjectId, ref: "Question"}
         }],
         required: true
     },
@@ -28,9 +28,9 @@ const jobSchema = new mongoose.Schema({
         default: true,
         select: false
     },
-    applicationIDs: [mongoose.ObjectId]|null,
-    analyzedData: [mongoose.ObjectId]|null
+    applicationIDs: [{type: Schema.Types.ObjectId, ref: "Application"}]|null,
+    analyzedData: [{type: Schema.Types.ObjectId, ref: "AnalyzedData"}]|null
 }, {timestamps: true});
 
-const Job = mongoose.model('Job', jobSchema);
+const Job = model('Job', jobSchema);
 module.exports = Job;

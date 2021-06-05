@@ -88,14 +88,32 @@ const store = async (req, res) => {
             application.updateOne(data).then(updatedApp => {
                 res.json({updated: data});
             }).catch(error => {
-                res.status(400).json(error);
+                console.log(error);
             });
         }
         else {
             Application.create(data).then(application => {
                 res.json({created: application});
+                if (!job.applicationIDs) {
+                    job.applicationIDs = [];
+                }
+                job.applicationIDs.push(application.id);
+                job.updateOne({applicationIDs: job.applicationIDs}, (err, res) =>{
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+                if (!req.user.applications) {
+                    req.user.applications = [];
+                }
+                req.user.applications.push(application.id);
+                req.user.updateOne({applications: req.user.applications}, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
             }).catch(error => {
-                res.status(400).json(error);
+                console.log(error);
             });
         }
     } catch (error) {
