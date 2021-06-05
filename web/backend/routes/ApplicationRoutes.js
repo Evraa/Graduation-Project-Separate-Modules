@@ -5,8 +5,16 @@ const { authorizeApplicant } = require("../middleware/authorize");
 
 const router = Router();
 
-router.get('/:id', requireAuth, applicationController.view);
+router.get('/api/application/:id', requireAuth, applicationController.view);
 
-router.post('/:jobID', requireAuth, authorizeApplicant, applicationController.verifyStore(), applicationController.store);
+router.post('/api/application/:jobID', requireAuth, authorizeApplicant,
+    applicationController.verifyJobID(), applicationController.verifyAnswers(),
+    applicationController.store);
+
+router.post('/api/application/:jobID/resume', requireAuth, authorizeApplicant,
+    applicationController.verifyJobID(),
+    applicationController.uploadResume.single('resume'), applicationController.storeResume);
+
+router.get('/uploads/resumes/:fileName', requireAuth, applicationController.viewResume);
 
 module.exports = router;
