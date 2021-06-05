@@ -16,7 +16,9 @@ const applicationSchema = new mongoose.Schema({
     resume: {
         type: {url: String, name: String, date: Date}
     },
-    video: String
+    video: {
+        type: {url: String, name: String, date: Date}
+    }
 }, {timestamps: true});
 
 const Application = mongoose.model('Application', applicationSchema);

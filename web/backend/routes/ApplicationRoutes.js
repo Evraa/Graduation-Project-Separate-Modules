@@ -17,4 +17,10 @@ router.post('/api/application/:jobID/resume', requireAuth, authorizeApplicant,
 
 router.get('/uploads/resumes/:fileName', requireAuth, applicationController.viewResume);
 
+router.post('/api/application/:jobID/video', requireAuth, authorizeApplicant,
+    applicationController.verifyJobID(),
+    applicationController.uploadVideo.single('video'), applicationController.storeVideo);
+
+router.get('/uploads/videos/:fileName', requireAuth, applicationController.viewVideo);
+
 module.exports = router;
