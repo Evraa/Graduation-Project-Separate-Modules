@@ -42,16 +42,32 @@ const verifyAnswers = () => {
         .isArray().withMessage("answers should be an array");
 };
 
-const checkForRequiredQuestions = (questions, answers) => {
-    answersMap = new Map();
-    for (const e of answers) {
-        answersMap.set(e.questionID, e.answer);
-    }
+const checkForRequiredQuestions = (questions, answersMap) => {
     for (const q of questions) {
         if (q.required && !answersMap.get(q.id))
             return q.id;
     }
     return undefined;
+};
+
+const saveQuestionAnswers = async (questions, newAnswers, user) => {
+    const oldAnswers = new Map();
+    if (!user.answers) {
+        user.answers = [];
+    }
+    for (const ans of user.answers) {
+        oldAnswers.set(ans.questionID, ans.answer);
+    }
+    added = false;
+    for (const q of questions) {
+        if (q.ID && !oldAnswers.has(q.ID) && newAnswers.has(q.id)) {
+            added = true;
+            user.answers.push({questionID: q.ID, answer: newAnswers.get(q.id)});
+        }
+    }
+    if (added) {
+        await user.updateOne({answers: user.answers});
+    }
 };
 
 // if application already exists, it updates it
@@ -66,8 +82,12 @@ const store = async (req, res) => {
         const job = await Job.findById(req.params.jobID);
         const questions = job.questions;
         const answers = req.body.answers;
-        
-        qID = checkForRequiredQuestions(questions, answers);
+        answersMap = new Map();
+        for (const e of answers) {
+            answersMap.set(e.questionID, e.answer);
+        }
+
+        qID = checkForRequiredQuestions(questions, answersMap);
         if (qID) {
             res.status(400).json({errors: [{
                 param: "answers",
@@ -76,7 +96,9 @@ const store = async (req, res) => {
             }]});
             return;
         }
-        
+        saveQuestionAnswers(questions, answersMap, req.user)
+        .catch(err => console.log(err));
+
         const data = {
             answers, 
             jobID: job.id,
