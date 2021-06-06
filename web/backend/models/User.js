@@ -32,7 +32,10 @@ const userSchema = new Schema({
     applications: [{title: String, ID: {type: Schema.Types.ObjectId, ref: 'Application'}}]|null,
     // applicantsNum: Number,
     resume: String,
-    answers: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}]|null
+    answers: {
+        type: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}],
+        select: false
+    }
 
 }, {timestamps: true});
 
