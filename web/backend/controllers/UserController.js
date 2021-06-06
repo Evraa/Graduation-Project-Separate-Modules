@@ -1,4 +1,4 @@
-const { body, validationResult, query } = require('express-validator');
+const { body, validationResult, query, param } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const lo = require('lodash');
 const Job = require('../models/Job');
@@ -176,7 +176,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 20;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    User.find({role: 'hr'}).select("-applications").skip(skip).limit(PAGE_SIZE)
+    User.find({role: 'hr'}).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
     .then(users => {
         res.json(users);
     })
@@ -196,7 +196,7 @@ const verifySearch = () => {
     ];
 };
 
-// admin can search for HR
+// admin can search for users
 const search = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
@@ -209,9 +209,8 @@ const search = (req, res) => {
     const skip = (page-1)*PAGE_SIZE;
     const query = req.query.q;
     User.find({
-        role: 'hr',
         $or: [{email: RegExp(query, "i")}, {name: RegExp(query, "i")}],
-    }).select("-applications").skip(skip).limit(PAGE_SIZE)
+    }).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
     .then(users => {
         res.json(users);
     })
@@ -219,6 +218,16 @@ const search = (req, res) => {
         console.log(err);
         res.status(500).json();
     });
+};
+
+const view = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    res.json({user});
 };
 
 const viewAnswers = (req, res) => {
@@ -253,6 +262,42 @@ const viewAnswers = (req, res) => {
     });
 };
 
+const verifyUserID = () => {
+    return param('id').isMongoId().withMessage("ID should be a valid user ID").bail()
+    .custom(async (val) => {
+        const job = await User.findById(val);
+        if (job) {
+            return true;
+        }
+        throw new Error("User ID is not found");
+    });
+
+};
+
+const promote = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    user.role = 'hr';
+    await user.save();
+    res.json({msg: "User is promoted to HR successfully"});
+};
+
+const demote = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    user.role = 'applicant';
+    await user.save();
+    res.json({msg: "User is demoted to applicant successfully"});
+};
+
 module.exports = {
     verifySignup,
     signup,
@@ -265,5 +310,9 @@ module.exports = {
     verifyIndex,
     search,
     verifySearch,
-    viewAnswers
+    viewAnswers,
+    verifyUserID,
+    view,
+    promote,
+    demote
 };
