@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const lo = require('lodash');
 const Job = require('../models/Job');
@@ -158,6 +158,69 @@ const update = (req, res) => {
     });
 };
 
+const verifyIndex = () => {
+    return [
+        query('page').optional().isInt().withMessage("page should be an integer")
+        .custom(val => val > 0).withMessage("page should be greater than 0").default(1)
+    ];
+};
+
+// show HR users for admin
+const index = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+    {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const PAGE_SIZE = 20;
+    const page = req.query.page;
+    const skip = (page-1)*PAGE_SIZE;
+    User.find({role: 'hr'}).select("-applications").skip(skip).limit(PAGE_SIZE)
+    .then(users => {
+        res.json(users);
+    })
+    .catch( err => {
+        console.log(err);
+        res.status(500).json();
+    });
+};
+
+const verifySearch = () => {
+    return [
+        query('page').optional().isInt().withMessage("page should be an integer")
+        .custom(val => val > 0).withMessage("page should be greater than 0").default(1),
+
+        query('q').notEmpty().withMessage("search query is required").bail()
+        .isString().withMessage("search query should be a string")
+    ];
+};
+
+// admin can search for HR
+const search = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+    {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const PAGE_SIZE = 20;
+    const page = req.query.page;
+    const skip = (page-1)*PAGE_SIZE;
+    const query = req.query.q;
+    User.find({
+        role: 'hr',
+        $or: [{email: RegExp(query, "i")}, {name: RegExp(query, "i")}],
+    }).select("-applications").skip(skip).limit(PAGE_SIZE)
+    .then(users => {
+        res.json(users);
+    })
+    .catch( err => {
+        console.log(err);
+        res.status(500).json();
+    });
+};
+
 const viewAnswers = (req, res) => {
     Job.findById(req.params.jobID).then(job => {
         if (!job) {
@@ -198,5 +261,9 @@ module.exports = {
     login,
     verifyUpdate,
     update,
+    index,
+    verifyIndex,
+    search,
+    verifySearch,
     viewAnswers
 };
