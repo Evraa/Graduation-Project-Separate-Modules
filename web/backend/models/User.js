@@ -40,10 +40,9 @@ const userSchema = new Schema({
 }, {timestamps: true});
 
 userSchema.pre('save', async function (next) {
-    if (this._update && this._update.password)
-    {
+    if (this.password) {
         const salt = await bcrypt.genSalt();
-        this._update.password = await bcrypt.hash(this._update.password, salt);
+        this.password = await bcrypt.hash(this.password, salt);
     }
     next();
 });
