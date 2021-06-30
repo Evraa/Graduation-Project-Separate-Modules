@@ -68,8 +68,8 @@ def test():
             
                 result.append(frame_i)
         else:
-            print ("Error: Unable to process")
-            sys.exit(0)
+            print ("Error: Unable to process this frame")
+            # sys.exit(0)
     # Report results
     result = np.array(result)
     
