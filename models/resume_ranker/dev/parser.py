@@ -4,6 +4,7 @@ import docx2txt
 import re
 PHONE_REG = re.compile(r'[\+\(]?[1-9][0-9 .\-\(\)]{8,}[0-9]')
 EMAIL_REG = re.compile(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+')
+import os
 # Local imports
 from nltk_downloads import *
 
@@ -70,7 +71,6 @@ def remove_noisy_words(text):
     names = extract_names(text)
     phones = extract_phone_number(text)
     emails = extract_emails(text)
-    
 
     word_tokens = tokenize_text(text)
 
@@ -110,11 +110,46 @@ def remove_noisy_words(text):
     # normalize the words, build the vocabulary
     return filtered_tokens
 
-if __name__ == '__main__':
+
+def get_parsed_data(path):
+    """
+        The main function for this module.
+
+        Input: a path to a pdf/word file
+
+        Output: tokens of this file as a list of words.
+    """
+    # make sure file does exist
+    if not os.path.exists(path):
+        print (f"Error: path: {path} does not exist!")
+        return None
+    # fetch the extension of the file
+    ext = path.split('.')[-1]
+
+    # read the file
+    if ext == "pdf": text = extract_text_from_pdf(path)
+    elif ext == "docx": text = extract_text_from_docx(path)
+    else: 
+        print (f"Error: extension {ext} is not supported yet!")
+        return None
+
+    # get tokens
+    tokens = remove_noisy_words(text)
+    
+    # make sure we have data
+    if tokens == None or len(tokens) == 0:
+        print (f"Error: no tokens are extracted! from file: {path}")
+        return None
+
+    # else? every thing is fine
+    return tokens
+
+
+# if __name__ == '__main__':
 
     # print(extract_text_from_pdf('data/1.pdf')) 
     # print(extract_text_from_docx('data/word/1.docx'))
-    text = extract_text_from_pdf('data/pdf/1.pdf')
+    # text = extract_text_from_pdf('data/pdf/1.pdf')
 
-    print(remove_noisy_words(text))
-    
+    # print(remove_noisy_words(text))
+    # print(get_parsed_data('data/pdf/1.pdf'))
