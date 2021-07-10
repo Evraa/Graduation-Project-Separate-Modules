@@ -130,7 +130,8 @@ def get_parsed_data(path):
     if ext == "pdf": text = extract_text_from_pdf(path)
     elif ext == "docx": text = extract_text_from_docx(path)
     else: 
-        print (f"Error: extension {ext} is not supported yet!")
+        print (f"Error: extension {ext} is not supported yet! File will be removed.")
+        os.remove(path)
         return None
 
     # get tokens

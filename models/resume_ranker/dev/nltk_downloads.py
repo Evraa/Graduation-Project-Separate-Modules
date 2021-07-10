@@ -1,6 +1,5 @@
 import nltk
 
-
 # Packages needed to be downloaded once
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
