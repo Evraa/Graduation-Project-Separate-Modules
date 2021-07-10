@@ -7,7 +7,7 @@ import time
 from parser import get_parsed_data
 
 class Resumes():
-    def __init__(self, dirname="/data/pdf"):
+    def __init__(self, dirname="data/pdf"):
         self.dirname = dirname
         self.epoch = 0
         self.start_time = time.time()
@@ -35,25 +35,27 @@ class Resumes():
             if data is None: continue
             yield data
 
-            
-# load data generator itertable
-resumes = Resumes('data/pdf')
-
-# train model
-model = Word2Vec(sentences=resumes, vector_size=100, window=5, min_count=1, workers=6, sg=1, hs=1)
-# save it
-if not os.path.exists('../model'): os.mkdir('../model')
-model.save("../model/word2vec.model")
 
 
-print ("Training Completed")
+def train_wv():
+    # load data generator itertable
+    resumes = Resumes('data/pdf')
 
-# Store just the words + their trained embeddings.
-word_vectors = model.wv
-if not os.path.exists('../model'): os.mkdir('../model')
-word_vectors.save("../model/word2vec.wordvectors")
+    # train model
+    model = Word2Vec(sentences=resumes, vector_size=100, window=5, min_count=1, workers=6, sg=1, hs=1)
+    # save it
+    if not os.path.exists('../model'): os.mkdir('../model')
+    model.save("../model/word2vec.model")
 
 
-# model = Word2Vec.load("../model/word2vec.model")
-# sims = model.wv.most_similar('computer', topn=10)  # get other similar words
-# print (sims)
+    print ("Training Completed")
+
+    # Store just the words + their trained embeddings.
+    word_vectors = model.wv
+    if not os.path.exists('../model'): os.mkdir('../model')
+    word_vectors.save("../model/word2vec.wordvectors")
+
+
+    # model = Word2Vec.load("../model/word2vec.model")
+    # sims = model.wv.most_similar('computer', topn=10)  # get other similar words
+    # print (sims)
