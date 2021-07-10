@@ -1,7 +1,9 @@
+#global imports
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 import os
 import time
+# local imports
 from parser import get_parsed_data
 
 class Resumes():
@@ -51,8 +53,6 @@ word_vectors = model.wv
 if not os.path.exists('../model'): os.mkdir('../model')
 word_vectors.save("../model/word2vec.wordvectors")
 
-# Load back with memory-mapping = read-only, shared across processes.
-# wv = KeyedVectors.load("../model/word2vec.wordvectors", mmap='r')
 
 # model = Word2Vec.load("../model/word2vec.model")
 # sims = model.wv.most_similar('computer', topn=10)  # get other similar words
