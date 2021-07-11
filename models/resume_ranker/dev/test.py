@@ -48,7 +48,7 @@ def load_wv(path = "../model/word2vec.wordvectors", use_glove = False):
     if use_glove: return gensim.downloader.load('glove-wiki-gigaword-100')
 
     if not utils.check_path(path): sys.exit(1)
-    return KeyedVectors.load("../model/word2vec.wordvectors", mmap='r')
+    return KeyedVectors.load(path, mmap='r')
 
 
 
@@ -74,22 +74,43 @@ class Resumes():
             yield data, each
 
 
+def load_data(path):
+    files = os.listdir(path)
+    data_dict = {}
+    for file in files:
+        try:
+            data = get_parsed_data(path+'/'+file)
+        except Exception as e:
+            print(f"Error: {e}\tat {file}")
+            continue
+        
+        if data is None: continue
+        data_dict[file] = (data)
+    return data_dict
+
+    
+
 def tailored_test_cases(path="data/tailored_test_cases"):
+    model_name = "../model/word2vec_vs_100_ep_6_sg_alpha_0001.wordvectors"
     test_cases = os.listdir(path)
+    wv = load_wv(path = model_name, use_glove=False)
     for i, test_case in enumerate(test_cases):
+        # if test_case != "test_3": continue
         jds = prepare_test_dataset_2(path+'/'+test_case+'/jd')
-        resumes = Resumes(path+'/'+test_case+'/cv')
-        wv = load_wv()
+        # resumes = Resumes(path+'/'+test_case+'/cv')
+        resumes = load_data(path+'/'+test_case+'/cv')
+        
         for j, jd in enumerate(jds):
             score_dict = {}
             
-            for resume ,resume_id in resumes:
-                score = rank(wv, resume, jd, window_size=7, step_size=2)
+            # for resume ,resume_id in resumes:
+            for resume_id, resume in resumes.items():
+                score = rank(wv, resume, jd, window_size=1, step_size=1)
                 resume_id = resume_id.split('.')[0]
                 score_dict[resume_id] = score
             sorted_score_dict = dict(sorted(score_dict.items(),key=lambda x:x[1],reverse = True))
             df = pd.DataFrame.from_dict(sorted_score_dict, orient="index")
-            file_name = "results_" + test_case + "_jd_" + str(j+1) +".csv"
+            file_name = "results_" + test_case + "_jd_" + str(j+1) +"_ep_6_vs_100_sg_alpha_0001.csv"
             print ("Results saved.")
             df.to_csv(file_name)
 

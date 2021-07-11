@@ -8,7 +8,7 @@ from parser import remove_noisy_words
 
 
 def sent2vec(sentence):
-    '''Generate Vectora for sentences.'''
+    '''Generate Vectors for sentences. by normalizing the number of words'''
     
     M = np.array(sentence)
     v = M.sum(axis=0)
