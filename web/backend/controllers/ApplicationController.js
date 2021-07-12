@@ -51,23 +51,25 @@ const checkForRequiredQuestions = (questions, answersMap) => {
 };
 
 const saveQuestionAnswers = async (questions, newAnswers, user) => {
-    const oldAnswers = new Map();
+    const answersMap = new Map();
     if (!user.answers) {
         user.answers = [];
     }
     for (const ans of user.answers) {
-        oldAnswers.set(ans.questionID, ans.answer);
+        answersMap.set(ans.questionID, ans.answer);
     }
-    added = false;
+    
     for (const q of questions) {
-        if (q.ID && !oldAnswers.has(q.ID) && newAnswers.has(q.id)) {
-            added = true;
-            user.answers.push({questionID: q.ID, answer: newAnswers.get(q.id)});
+        if (q.ID && newAnswers.has(q.id)) {
+            answersMap.set(q.ID, newAnswers.get(q.id));
         }
     }
-    if (added) {
-        await user.updateOne({answers: user.answers});
+    user.answers = [];
+    for (const ans of answersMap) {
+        user.answers.push({questionID: ans[0], answer: ans[1]});
     }
+    
+    await user.updateOne({answers: user.answers});
 };
 
 // if application already exists, it updates it

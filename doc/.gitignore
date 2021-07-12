@@ -1,0 +1,12 @@
+# Main files to not push
+*.aux
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.idx
+*.lof
+*.lot
+*.out

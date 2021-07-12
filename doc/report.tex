@@ -1,0 +1,161 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage[top=0.6in,bottom=0.6in,right=1in,left=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{titling}
+
+\usepackage{array}
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\rhead{I Hire Graduation Project | 2021}
+\lhead{\thesection}
+\rfoot{\thepage}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+
+
+\begin{document}
+\begin{titlepage}
+  
+\begin{center}
+  \begin{minipage}{2.5cm}
+    \begin{center}
+      \includegraphics[width=2.3cm,height=2.5cm]{images/logo/uni_logo.jpg}
+    \end{center}
+  \end{minipage}\hfill
+  \begin{minipage}{10cm}
+    \begin{center}
+      {\bfseries\large Cairo University - Faculty of Engineering}\\[0.1cm]
+      {\bfseries\large Computer Engineering Department}\\[0.1cm]
+    \end{center}
+  \end{minipage}\hfill
+  \begin{minipage}{2.5cm}
+    \begin{center}
+        \includegraphics[width=2.5cm,height=2cm]{images/logo/fac_logo.png}
+    \end{center}
+  \end{minipage}
+  
+  \vspace{1cm}
+  \begin{minipage}{6cm}
+    \begin{center}
+        \includegraphics[width=5.1cm,height=5cm]{images/logo/i_hire.png}
+    \end{center}
+  \end{minipage}
+
+
+
+
+
+  {\LARGE{A Graduation Project Report Submitted to} \\[0.1cm] }
+  {\LARGE {Faculty of Engineering, Cairo University} \\[0.1cm] }
+  {\LARGE {in Partial Fulfillment of the requirements of the degree of} \\[0.1cm] }
+  {\LARGE {Bachelor of Science in Computer Engineering.} \\[0.1cm] }
+  \vspace{1cm}
+
+
+\begin{center}
+  {\LARGE \textit{Authors}}\\[0.5cm]
+
+  \setlength{\tabcolsep}{1.5cm}
+  \begin{tabular}{M{5cm}M{5cm}}
+  \large \textsc{Evram Youssef} & \large \textsc{Omar Ahmed}\\[0.1cm]
+  \large \href{evramyousef@gmail.com}{evramyousef@gmail.com} & \large \href{omar.ahmed983@eng-st.cu.edu.eg}{omar.ahmed983@eng-st.cu.edu.eg}\\[0.1cm]
+  \end{tabular}
+
+  \vspace{0.9cm}
+
+  \setlength{\tabcolsep}{1.5cm}
+  \begin{tabular}{M{5cm}M{5cm}}
+  \large \textsc{Kareem Osama} & \large \textsc{Muhammad Sayed}\\[0.1cm]
+  \large \href{kareem.elsayed98@eng-st.cu.edu.eg}{kareem.elsayed98@eng-st.cu.edu.eg} & \large \href{muhammad.mahmoud98@eng-st.cu.edu.eg}{muhammad.mahmoud98@eng-st.cu.edu.eg}\\[0.1cm]
+    
+  \end{tabular}
+  \vspace{1cm}
+
+  {\LARGE \textit{Supervised by}}\\
+  \LARGE \textsc{Prof. Magda Fayek}\\[0.5cm]
+
+  {\large {Date: \today}}
+  \vspace{0.5cm}
+
+  \small {\textsuperscript{\textcopyright} All rights reserved. This report may not be reproduced in whole or in part, by photocopying or other means, without the permission of the authors/department.}
+
+\end{center}
+
+
+\end{center}
+\end{titlepage}
+
+
+
+\thispagestyle{empty}
+
+% general guidelines
+% abstract
+% abstract in arabic
+% ack
+\tableofcontents
+\listoffigures
+\listoftables
+% list of abbreviations
+% list of symbols
+% contacts
+\clearpage
+
+\pagenumbering{arabic}
+
+\part{Introduction}
+\input{core/introduction}
+
+
+
+\part{Market Survey}
+\input{core/market_survey}
+
+\part{Literature Survey}
+\input{core/literature_survey}
+
+\part{System Design and Architecture}
+\input{core/system_design_and_architecture}
+
+\part{System Testing and Verification}
+\input{core/system_testing_and_verification}
+
+\part{Conclusions and Future Work}
+\input{core/conclusions_and_future_work}
+
+%\part{Reference}
+%\input{core/reference}
+
+\part{Appendix A: Development Platforms and Tools}
+\input{core/appendix_A}
+
+\part{Appendix B: Use Cases}
+\input{core/appendix_B}
+
+\part{Appendix C: User Guide}
+\input{core/appendix_C}
+
+\part{Appendix D: Code Documentation}
+\input{core/appendix_D}
+
+\part{Appendix E: Feasibility Study}
+\input{core/appendix_E}
+
+\end{document}

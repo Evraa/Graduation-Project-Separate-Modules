@@ -1,6 +1,7 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query, param } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const lo = require('lodash');
+const Job = require('../models/Job');
 
 const User = require('../models/User');
 
@@ -157,6 +158,146 @@ const update = (req, res) => {
     });
 };
 
+const verifyIndex = () => {
+    return [
+        query('page').optional().isInt().withMessage("page should be an integer")
+        .custom(val => val > 0).withMessage("page should be greater than 0").default(1)
+    ];
+};
+
+// show HR users for admin
+const index = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+    {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const PAGE_SIZE = 20;
+    const page = req.query.page;
+    const skip = (page-1)*PAGE_SIZE;
+    User.find({role: 'hr'}).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
+    .then(users => {
+        res.json(users);
+    })
+    .catch( err => {
+        console.log(err);
+        res.status(500).json();
+    });
+};
+
+const verifySearch = () => {
+    return [
+        query('page').optional().isInt().withMessage("page should be an integer")
+        .custom(val => val > 0).withMessage("page should be greater than 0").default(1),
+
+        query('q').notEmpty().withMessage("search query is required").bail()
+        .isString().withMessage("search query should be a string")
+    ];
+};
+
+// admin can search for users
+const search = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+    {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const PAGE_SIZE = 20;
+    const page = req.query.page;
+    const skip = (page-1)*PAGE_SIZE;
+    const query = req.query.q;
+    User.find({
+        $or: [{email: RegExp(query, "i")}, {name: RegExp(query, "i")}],
+    }).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
+    .then(users => {
+        res.json(users);
+    })
+    .catch( err => {
+        console.log(err);
+        res.status(500).json();
+    });
+};
+
+const view = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    res.json({user});
+};
+
+const viewAnswers = (req, res) => {
+    Job.findById(req.params.jobID).then(job => {
+        if (!job) {
+            res.status(404).json({errors: [{msg: "job is not found"}]});
+            return;
+        }
+        const qSet = new Set();
+        for (const q of job.questions) {
+            if (q.ID) {
+                qSet.add(q.ID.toString());
+            }
+        }
+        User.findById(req.user.id).select('+answers').then(user => {
+            const answers = new Map();
+            const allAnswers = user.answers;
+
+            if (allAnswers) {
+                for (const ans of allAnswers) {
+                    if (qSet.has(ans.questionID.toString())) {
+                        answers.set(ans.questionID, ans.answer);
+                    }
+                }
+            }
+            res.json(Object.fromEntries(answers));
+        }).catch(err => console.log(err));
+    }).catch(err => {
+        console.log(err);
+        // res.status(400).json({errors: [{msg: "Job ID is invalid"}]});
+        return;
+    });
+};
+
+const verifyUserID = () => {
+    return param('id').isMongoId().withMessage("ID should be a valid user ID").bail()
+    .custom(async (val) => {
+        const job = await User.findById(val);
+        if (job) {
+            return true;
+        }
+        throw new Error("User ID is not found");
+    });
+
+};
+
+const promote = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    user.role = 'hr';
+    await user.save();
+    res.json({msg: "User is promoted to HR successfully"});
+};
+
+const demote = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const user = await User.findById(req.params.id);
+    user.role = 'applicant';
+    await user.save();
+    res.json({msg: "User is demoted to applicant successfully"});
+};
+
 module.exports = {
     verifySignup,
     signup,
@@ -164,5 +305,14 @@ module.exports = {
     verifyLogin,
     login,
     verifyUpdate,
-    update
+    update,
+    index,
+    verifyIndex,
+    search,
+    verifySearch,
+    viewAnswers,
+    verifyUserID,
+    view,
+    promote,
+    demote
 };

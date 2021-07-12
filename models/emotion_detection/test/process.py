@@ -16,8 +16,8 @@ def load_model():
     '''
     try:
         model_path = '../model/'
-        model_path += os.listdir(model_path)[0]
-        model = torch.load(model_path)
+        model_path += os.listdir(model_path)[1]
+        model = torch.load(model_path, map_location=device)
         return model
     except:
         print ("Error: No models to test with")
@@ -38,9 +38,9 @@ def predict_emotion(img,model):
     # TODO: This part should detect THE best faces there. larger, most probable, centered .. etc.
     good_boxes = []
     for index, proba in enumerate(all_boxes[1]):
-        if(proba > 0.9):
+        if(proba is not None and proba > 0.9):
             good_boxes.append(all_boxes[0][index])
-
+    output = None
     # Test/Evaluate
     model.eval()
     # Again, this should not be a for loop.
@@ -62,5 +62,5 @@ def predict_emotion(img,model):
 def run(img):
     model = load_model()
     output = predict_emotion(img, model)
-
+    if output is None: return False, output
     return True, output

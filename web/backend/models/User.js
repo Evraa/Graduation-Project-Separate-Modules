@@ -31,14 +31,19 @@ const userSchema = new Schema({
     jobs: [{title: String, ID: {type: Schema.Types.ObjectId, ref: 'Job'}}]|null,
     applications: [{title: String, ID: {type: Schema.Types.ObjectId, ref: 'Application'}}]|null,
     // applicantsNum: Number,
-    resume: String,
-    answers: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}]|null
+    // resume: String,
+    answers: {
+        type: [{questionID: {type: Schema.Types.ObjectId, ref: 'Question'}, answer: String}],
+        select: false
+    }
 
 }, {timestamps: true});
 
 userSchema.pre('save', async function (next) {
-    const salt = await bcrypt.genSalt();
-    this.password = await bcrypt.hash(this.password, salt);
+    if (this.password) {
+        const salt = await bcrypt.genSalt();
+        this.password = await bcrypt.hash(this.password, salt);
+    }
     next();
 });
 

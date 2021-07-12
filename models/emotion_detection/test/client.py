@@ -20,7 +20,7 @@ def establish_network():
     headers = {'content-type': content_type}
     return headers
 
-def extract_frames(r_range,l_range=0,vid_id = 0):
+def extract_frames(r_range,l_range=0,vid_id = 3):
     '''
         Truncate video into frames.
 
@@ -41,9 +41,9 @@ def extract_frames(r_range,l_range=0,vid_id = 0):
     data = {}
     while(cap.isOpened()):
         ret, frame = cap.read()
-        if ret == False or i>r_range:
+        if ret == False or (i>r_range and r_range!=0):
             break
-        if i>=l_range and i<=r_range:
+        if (i>=l_range and i<=r_range) or r_range==0:
             # img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
             # frame = Image.fromarray(np.uint8(frame)).convert('RGB')
 
@@ -76,12 +76,13 @@ def add_more_info(json_data):
 
         all_emotions = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
     '''
-    json_data['emotions'] = ['happy', 'sad', 'surprise','neutral']
+    json_data['emotions'] = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise','neutral']
     return
 
 if __name__ == '__main__':
     headers = establish_network()
-    json_data = extract_frames(r_range=210, l_range=200)
+    # 30FPS
+    json_data = extract_frames(r_range=0, l_range=0)
     add_more_info(json_data)
     
     # encode request
