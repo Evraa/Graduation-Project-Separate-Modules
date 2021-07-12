@@ -1,7 +1,8 @@
 #global imports
 import numpy as np
 from scipy.spatial import distance
-
+from gensim.models import KeyedVectors
+import math
 #local imports
 from parser import remove_noisy_words
 
@@ -67,8 +68,13 @@ def handle_unknown_vocab(wv, query):
     return existed
 
 
+def list_to_sentence(list):
+    sentence = ""
+    for l in list:
+        sentence += " " + l
+    return sentence
 
-def rank(words_vector, cv, query, window_size=5, step_size=3):
+def rank(words_vector, cv, query, window_size=2, step_size=1, spacy = False):
     """
         Main ranker function, that evaluates a query against given cv.
 
@@ -81,6 +87,22 @@ def rank(words_vector, cv, query, window_size=5, step_size=3):
         Output:
             `score`: independent normalized score (independent from any other cv)
     """
+    
+    if spacy:
+        query_sentences = split_sentence(query, window_size=window_size, step_size=step_size)
+        cv_sentences = split_sentence(cv, window_size=window_size, step_size=step_size)
+        # NxN for loops
+        score = 0
+        for cv_sentence in cv_sentences:
+            cv_sentence = list_to_sentence(cv_sentence)
+            cv_doc = words_vector(cv_sentence)
+            for query_sentence in query_sentences:
+
+                score += cv_doc.similarity(words_vector(list_to_sentence(query_sentence)))
+
+        return round(score/(len(cv_sentences)*len(query_sentences)) , 2)
+
+
     cv = handle_unknown_vocab(words_vector, cv)
     if len(cv) == 0: return 0
     query = handle_unknown_vocab(words_vector, query)
@@ -99,4 +121,62 @@ def rank(words_vector, cv, query, window_size=5, step_size=3):
             score += cosine_sim(cv_sentence, query_sentence)
 
     return round(score/(len(cv_sentences)*len(query_sentences)) , 2)
+
+
+def extend_query(words_vector, query, n_extend):
+    '''
+        using word vector, get the most similar words to test against.
+    '''
     
+    words_dict = {}
+    for q in query:
+        words_dict[q] = 0
+
+    for q in query:
+        try:
+            similar_list = words_vector.most_similar(positive=[q],topn=n_extend)
+            words_dict[q] += 1
+            for tupl in similar_list:
+                words_dict[tupl[0]] =  words_dict[q] *  tupl[1]
+                
+        except:
+            continue
+
+    return words_dict
+
+
+
+def tfidf(words_vector, query, cvs, n_extend=0):
+    '''
+        Evaluating docs using tf-idf.
+        
+        `query`: the job description as tokens
+        `cvs`: list of cvs tokens
+        `words_vector`: the word vector model used
+    '''
+    # make sure we can evaluate the query with our words dictionary
+    query_dict = extend_query(words_vector, query, n_extend)
+
+    if len(query) == 0:
+        print (f"Error: Job description UNKNOWN\n {query}")
+        return 0
+
+    # first compute df
+    # assume all words are unique
+    N = len(cvs)
+    idf_dict = {}
+    for word, value in query_dict.items():
+        idf_dict[word] = 1
+        for cv in cvs:
+            if word in cv: idf_dict[word] += 1
+
+        idf_dict[word] = math.log((N/idf_dict[word])+1)
+    
+    # calculate score for each doc
+    score_dict = {}
+    for cv_id, cv in cvs.items():
+        score_dict[cv_id] = 0
+        for word, value in query_dict.items():
+            tf = cv.count(word)
+            score_dict[cv_id] += tf * idf_dict[word] * value
+    return score_dict

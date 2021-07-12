@@ -5,8 +5,15 @@ import time
 import pandas as pd
 # local imports
 from parser import get_parsed_data, extract_text_from_pdf
+from utils import fetch_data, evaluate_pereformance
 
 class Resumes():
+    '''
+        Making the data itertable proved is bad approach, first the data is not that large to fit into memory.
+            and it makes word2vec very slow.
+
+        Do NOT use it.
+    '''
     def __init__(self, dirname="data/pdf"):
         self.dirname = dirname
         self.epoch = 0
@@ -36,49 +43,6 @@ class Resumes():
             yield data
 
 
-def store_tokens(path = "data/pdf"):
-    """
-        Storing tokenized data instead of reading and preprocessing them every time we train.
-    """
-    files = os.listdir(path)
-    data_dict = {}
-    for file in files:
-        try:
-            data = get_parsed_data(path+'/'+file)
-        except Exception as e:
-            print(f"Error: {e}\tat {file}")
-            continue
-        
-        if data is None: continue
-        data_dict[file] = data
-
-    df = pd.DataFrame.from_dict(data_dict, orient="index")
-    file_name = "data/data_pdf_1.csv"
-    df.to_csv(file_name)
-    
-
-def fetch_data(path = "data/data_pdf_1.csv"):
-    resumes = pd.read_csv(path, low_memory=False)
-    dict = resumes.iloc[:,1:].to_dict('split')['data']
-    del resumes
-    return dict
-    # data = {}
-    # rows, cols = resumes.shape
-    # for row in range(rows):
-    #     print (row)
-    #     new_row = True
-    #     name = None
-    #     for col in range(cols):
-    #         cell = resumes.iloc[row, col]
-    #         if new_row:
-    #             name = cell
-
-    #             data[name] = []
-    #             new_row = False
-    #             continue
-            
-    #         data[name].append(cell)
-    # return data
 
 
 def train_wv(iteratable = False):
@@ -86,16 +50,24 @@ def train_wv(iteratable = False):
     if iteratable: 
         resumes = Resumes('data/pdf')
     else:
-        resumes = fetch_data()
+        resumes = fetch_data("data/data_pdf_combined.csv")
 
     print ("Data loaded.")
 
+    lr = 0.001
+    vector_size = 300
+    epochs = 150
+
+    model_name = "word2vec_vs_"+str(vector_size)+ "_ep_" + str(epochs)+"_sg_alpha_" + str(lr)
+    
     # train model
-    model = Word2Vec(sentences=resumes, vector_size=100, window=6, min_count=1, 
-                    workers=6, sg=1, hs=1, epochs=6, alpha=0.0001, min_alpha=0.00001)
+    model = Word2Vec(sentences=resumes, vector_size=vector_size, window=15, min_count=1, 
+                    workers=6, sg=1, hs=1, epochs=epochs, alpha=lr, min_alpha=lr/10)
+
     # save it
     if not os.path.exists('../model'): os.mkdir('../model')
-    model.save("../model/word2vec_vs_100_ep_6_sg_alpha_0001.model")
+    file_path = "../model/"+model_name+".model"
+    model.save(file_path)
 
 
     print ("Training Completed")
@@ -103,25 +75,35 @@ def train_wv(iteratable = False):
     # Store just the words + their trained embeddings.
     word_vectors = model.wv
     if not os.path.exists('../model'): os.mkdir('../model')
-    word_vectors.save("../model/word2vec_vs_100_ep_6_sg_alpha_0001.wordvectors")
+    file_path = "../model/"+model_name+".wordvectors"
+    word_vectors.save(file_path)
 
+    print (f"length of vocab: {len(word_vectors)}")
+
+    # evaluate
+    evaluate_pereformance(wv=word_vectors)
 
     # model = Word2Vec.load("../model/word2vec.model")
     # sims = model.wv.most_similar('computer', topn=10)  # get other similar words
     # print (sims)
 
-def accumulate_training():
+def accumulate_training(iteratable=False):
     # load data generator itertable
-    resumes = Resumes('data/pdf_2')
+    if iteratable: 
+        resumes = Resumes('data/pdf')
+    else:
+        resumes = fetch_data("data/data_pdf_2.csv")
+
+    print ("Data loaded")
 
     # load the model
-    model = Word2Vec.load("../model/word2vec.model")
+    model = Word2Vec.load("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.model")
 
     #trian on new data
-    model.train(resumes, epochs=6, total_examples=1033)
+    model.train(resumes, epochs=150, total_examples=len(resumes))
 
     #save new model
-    model.save("../model/word2vec_2.model")
+    model.save("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.model")
 
 
     print ("Training Completed")
@@ -129,7 +111,7 @@ def accumulate_training():
     # Store just the words + their trained embeddings.
     word_vectors = model.wv
     if not os.path.exists('../model'): os.mkdir('../model')
-    word_vectors.save("../model/word2vec_2.wordvectors")
+    word_vectors.save("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.wordvectors")
 
 
 train_wv()

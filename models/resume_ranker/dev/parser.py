@@ -93,19 +93,22 @@ def remove_noisy_words(text):
         filtered_tokens = [w for w in filtered_tokens if w not in emails]
 
     # stemming tokens using Porter stemmer
-    filtered_tokens = [porter.stem(w) for w in filtered_tokens]
+    # filtered_tokens = [porter.stem(w) for w in filtered_tokens]
 
     # u may also use Lancaster
     # filtered_tokens = [lancaster.stem(w) for w in filtered_tokens]
 
     # lemmatization using WordNet Lemmatizer
-    filtered_tokens = [wnl.lemmatize(w) for w in filtered_tokens]
+    # filtered_tokens = [wnl.lemmatize(w) for w in filtered_tokens]
 
     # remove redundent words
     filtered_tokens = list(dict.fromkeys(filtered_tokens))
 
     # remove single characters
     filtered_tokens = [w for w in filtered_tokens if len(w)>1]
+
+    #make sure all in lowercase
+    filtered_tokens = [w.lower() for w in filtered_tokens ]
 
     # normalize the words, build the vocabulary
     return filtered_tokens
