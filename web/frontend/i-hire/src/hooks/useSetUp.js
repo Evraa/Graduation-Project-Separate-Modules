@@ -6,7 +6,7 @@ function useSetUp() {
 
 
     useEffect( () => {
-        store.dispatch(setIsLoading())
+        store.dispatch(setIsLoading());
     }, [])
 }
 

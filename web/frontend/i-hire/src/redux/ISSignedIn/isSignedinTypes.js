@@ -1,0 +1,2 @@
+export const SET_IS_SIGNEDIN = 'SET_IS_SIGNEDIN'
+export const RESET_IS_SIGNEDIN = 'RESET_IS_SIGNEDIN'
