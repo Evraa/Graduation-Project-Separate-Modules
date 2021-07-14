@@ -1,0 +1,7 @@
+
+.homecontainer {
+    display: flex;
+    align-items: left;
+    width: 1500px;
+    padding-left: 90px;
+}
