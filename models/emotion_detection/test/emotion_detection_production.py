@@ -17,9 +17,7 @@ response = {
     "success": True,
     "error": "",
     "no_frames":0,
-    "results":{
-
-    }
+    "results":[]
 }
 
 def load_model(path):
@@ -33,7 +31,7 @@ def load_model(path):
     except:
         response["error"] = "No models to test with!"
         response["success"] = False
-        sys.exit(1)
+        sys.exit(response)
 
 
 
@@ -73,7 +71,7 @@ def predict_emotion(img, model):
 
 
 
-def predict_frames(vid_path, splits = 1):
+def predict_frames(vid_path, splits, model_path):
     '''
         Truncate video into frames.
 
@@ -85,10 +83,10 @@ def predict_frames(vid_path, splits = 1):
     if not os.path.exists(vid_path):
         response["error"] = "No video to process!"
         response["success"] = False
-        sys.exit(1)
+        sys.exit(response)
 
     # load model
-    model = load_model("emotion_detect_model_90.h5")
+    model = load_model(model_path)
 
     #Read the first video
     try:
@@ -109,26 +107,27 @@ def predict_frames(vid_path, splits = 1):
         
             output = predict_emotion(frame, model)
             frame_i = []
-            for out in output:
-                frame_i.append(out.item())
-            
-            results.append(frame_i)
+            if output is not None:
+                for out in output:
+                    frame_i.append(out.item())
+                
+                results.append(frame_i)
             
             i+=1
         
         cap.release()
         cv2.destroyAllWindows()
 
-    except Exception:
-        response["error"] = Exception
+    except Exception as e:
+        response["error"] = e
         response["success"] = False
-        sys.exit(1)
+        sys.exit(response)
 
     # Report results
     if len(results) == 0:
         response["error"] = "No faces were detected in the video."
         response["success"] = False
-        sys.exit(1)
+        sys.exit(response)
 
     # Report number of frames exist
     response["no_frames"] = len(results)
@@ -142,11 +141,11 @@ def predict_frames(vid_path, splits = 1):
 
         results_split = np.array(results[i*split_size : max_possible])
         result_mean = np.mean(results_split, axis=0)
-        result_name = str(i+1)
-        response["results"][result_name] = {}
+        
+        response["results"].append({})
             
         for key, emoition in all_emotions.items():
-            response["results"][result_name][emoition] = result_mean[key]
+            response["results"][i][emoition] = result_mean[key]
 
     return True
 
@@ -155,14 +154,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-p", "--path",  required=True)   
-    parser.add_argument("-s", "--split", required=False, default=1)   
+    parser.add_argument("-s", "--split", required=False, default=1)
+    parser.add_argument("-m", "--model", required=False, default="emotion_detect_model_90.h5")
     
     args = parser.parse_args()
     if int(args.split) <1 or int(args.split) >1000:
         response["error"] = "No. of splits must be bounded [1:1000]"
         response["success"] = False
-        sys.exit(1)
+        sys.exit(response)
 
-    state = predict_frames(args.path, args.split)
+    state = predict_frames(args.path, args.split, args.model)
     response["success"] = state
     print (response)
