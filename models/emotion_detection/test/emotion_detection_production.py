@@ -9,6 +9,8 @@ import numpy as np
 import argparse
 import cv2
 import math
+import json
+
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -31,7 +33,8 @@ def load_model(path):
     except:
         response["error"] = "No models to test with!"
         response["success"] = False
-        sys.exit(response)
+        store_response()
+        sys.exit(1)
 
 
 
@@ -83,7 +86,8 @@ def predict_frames(vid_path, splits, model_path):
     if not os.path.exists(vid_path):
         response["error"] = "No video to process!"
         response["success"] = False
-        sys.exit(response)
+        store_response()
+        sys.exit(1)
 
     # load model
     model = load_model(model_path)
@@ -121,13 +125,15 @@ def predict_frames(vid_path, splits, model_path):
     except Exception as e:
         response["error"] = e
         response["success"] = False
-        sys.exit(response)
+        store_response()
+        sys.exit(1)
 
     # Report results
     if len(results) == 0:
         response["error"] = "No faces were detected in the video."
         response["success"] = False
-        sys.exit(response)
+        store_response()
+        sys.exit(1)
 
     # Report number of frames exist
     response["no_frames"] = len(results)
@@ -149,6 +155,20 @@ def predict_frames(vid_path, splits, model_path):
 
     return True
 
+
+
+def store_response():
+    '''
+        Stores the json response, named with the video name extracted from the video path.
+    '''
+    try:
+        file_path = video_path.split("/")[-1].split(".")[0] + ".json"
+        
+        with open(file_path, 'w') as fp:
+            json.dump(response, fp)
+    except:
+        print ("Error: can't store the file!")
+
  
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -156,13 +176,28 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--path",  required=True)   
     parser.add_argument("-s", "--split", required=False, default=1)
     parser.add_argument("-m", "--model", required=False, default="emotion_detect_model_90.h5")
-    
     args = parser.parse_args()
+    video_path = args.path
+
     if int(args.split) <1 or int(args.split) >1000:
         response["error"] = "No. of splits must be bounded [1:1000]"
         response["success"] = False
-        sys.exit(response)
+        store_response()
+        sys.exit(1)
+
+    if not os.path.exists(args.path):
+        response["error"] = "Invalid path for video"
+        response["success"] = False
+        store_response()
+        sys.exit(1)
+
+    if not os.path.exists(args.model):
+        response["error"] = "Invalid path for model"
+        response["success"] = False
+        store_response()
+        sys.exit(1)
 
     state = predict_frames(args.path, args.split, args.model)
     response["success"] = state
-    print (response)
+    store_response()
+    sys.exit(0)
