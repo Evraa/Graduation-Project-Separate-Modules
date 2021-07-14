@@ -6,10 +6,13 @@ import { Provider } from 'react-redux'
 import store from './redux/store'
 import useSetUp from './hooks/useSetUp'
 import NavBar from './components/common/NavBar/NavBar'
+import { initializeIcons } from '@fluentui/font-icons-mdl2';
+
 
 
 function App() {
 
+  initializeIcons();
   useSetUp()
   return (
     <Provider store = {store}>

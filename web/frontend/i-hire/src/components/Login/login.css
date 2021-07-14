@@ -1,31 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
 
-.verticalstack {
+.login_verticalstack {
     display: flex;
     align-items: center;
     max-width: 500px;
     margin: 0 auto;
 }
 
-.horizontalstack {
+.login_horizontalstack {
     display: flex;
     align-items: flex-start;
     max-width: 500px;
     margin: 0 auto;
 }
 
-.label {
+.login_label {
     text-align: left;
     font-weight:bold;
     align-self: center;
     width:250px;
 }
 
-.button {
+.login_button {
     align-self: center;
 }
 
-.signin{
+.login_signin{
     width: 250px;
     font-weight:bold;
 }

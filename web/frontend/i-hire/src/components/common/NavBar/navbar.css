@@ -10,8 +10,8 @@
     padding: 20px;
     display: flex;
     align-items: center;
-    max-width: 900px;
-    margin: 0 auto;
+    margin-left: 10%;
+    margin-right: 10%;
     border-bottom: 1px solid #f2f2f2;
   }
   .navbar h1 {

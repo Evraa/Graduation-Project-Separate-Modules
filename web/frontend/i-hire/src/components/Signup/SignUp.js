@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PrimaryButton, Stack, TextField } from '@fluentui/react';
 import { useHistory } from "react-router-dom";
 import axios from 'axios';
@@ -31,19 +31,18 @@ function SignUp() {
             console.log(response);
         }).catch(error => {
             console.log(error);
-        })
+        });
+        history.push("/");
     }
 
-
-
     return (
-        <Stack vertical tokens={stackTokens} className='verticalstack'>
+        <Stack vertical tokens={stackTokens} className='login_verticalstack'>
 
             <TextField 
             label='Name'
             type="text" 
             required
-            className='label'
+            className='login_label'
             value={name}
             onChange={(e) => setName(e.target.value)}
             />
@@ -52,7 +51,7 @@ function SignUp() {
             label='Email'
             type="text" 
             required
-            className='label'
+            className='login_label'
             value={emailtxt}
             onChange={(e) => setEmail(e.target.value)}
             />
@@ -61,7 +60,7 @@ function SignUp() {
             label='Password'
             type="password" 
             required
-            className='label'
+            className='login_label'
             value={passwordtxt}
             onChange={(e) => setPassword(e.target.value)}
             />
@@ -71,14 +70,14 @@ function SignUp() {
             label='Password Confrimation'
             type="password" 
             required
-            className='label'
+            className='login_label'
             value={passwordConfirmation}
             onChange={(e) => setPasswordConfirmation(e.target.value)}
             />
 
 
-            <Stack vertical className='button' tokens={{childrenGap: 40}}>
-                <PrimaryButton onClick={signUp} text = "Sign up" className='signin'/>
+            <Stack vertical className='login_button' tokens={{childrenGap: 40}}>
+                <PrimaryButton onClick={signUp} text = "Sign up" className='login_signin'/>
             </Stack>
         </Stack>
     )
