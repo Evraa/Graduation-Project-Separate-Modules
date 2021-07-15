@@ -44,9 +44,12 @@ def run(jd_path, cvs_path):
     # Parse jd
     try:
         jd_file = os.path.join(jd_path, os.listdir(jd_path)[0])
-        jd_tokens = get_parsed_data(jd_file)
+        state, jd_tokens = get_parsed_data(jd_file)
     except Exception as e:
         report_error(e)
+
+    if not state:
+        report_error(jd_tokens)
 
     # Parse cvs
     files = os.listdir(cvs_path)
@@ -62,8 +65,8 @@ def run(jd_path, cvs_path):
         try:
             state, cv_tokens = get_parsed_data(file_path)
             # In case any error occured
-            if not state: report_error(cv_tokens) 
-            cvs[file] = cv_tokens
+            if state: 
+                cvs[file] = cv_tokens
         except:
             print(f"Error occured WHILE parsing file: {file}")
 
