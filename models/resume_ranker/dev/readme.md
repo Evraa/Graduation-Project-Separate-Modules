@@ -12,3 +12,11 @@ pip install numpy
     test: https://www.kaggle.com/airiddha/trainrev1
     test_2: https://drive.google.com/file/d/17M9oDPip5JFFFNJhDCBQKy8BMqoyxajU/view
     train: https://www.kaggle.com/ranaelmahmoudy/curriculum-vitae-data-pdf
+
+
+## For production:
+1- nltk_downloads.py
+2- parser_utils_prod.py
+3- ranker.py
+4- resume_ranker_production.py  #MAIN
+5- models FOLDER

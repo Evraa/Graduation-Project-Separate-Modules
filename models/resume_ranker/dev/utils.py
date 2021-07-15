@@ -2,7 +2,7 @@ import pandas as pd
 import os, sys
 from gensim.models import KeyedVectors
 import random
-from parser import get_parsed_data
+from parser_utils import get_parsed_data
 
 def check_path(path):
     if not os.path.exists(path):

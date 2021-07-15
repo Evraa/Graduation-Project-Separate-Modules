@@ -13,7 +13,7 @@ import spacy
 
 #local imports
 import utils
-from parser import get_parsed_data, remove_noisy_words
+from parser_utils import get_parsed_data, remove_noisy_words
 from ranker import rank, tfidf
 
 
