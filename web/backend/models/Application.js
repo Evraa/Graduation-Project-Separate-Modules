@@ -20,6 +20,12 @@ const applicationSchema = new Schema({
     },
     video: {
         type: {url: String, name: String, date: Date}
+    },
+    analyzedVideo: {
+        type: Schema.Types.Mixed
+    },
+    analyzedPersonality: {
+        type: Schema.Types.Mixed
     }
 }, {timestamps: true});
 
