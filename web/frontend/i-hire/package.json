@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fluentui/example-data": "^8.2.4",
     "@fluentui/react": "^8.22.3",
     "@testing-library/jest-dom": "^5.13.0",
     "@testing-library/react": "^11.2.7",

@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 .login_verticalstack {
+    padding-top: 40px;
     display: flex;
     align-items: center;
     max-width: 500px;

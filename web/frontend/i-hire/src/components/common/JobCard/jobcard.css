@@ -1,8 +1,8 @@
 .job_card {
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
+    border: 2px mediumblue;
     width: 300px;
-    border-radius: 20px;
   }
 
 .job_card:hover {
@@ -10,9 +10,7 @@
   }
   
 .job_header {
-    border-radius: 20px 20px 0 0;
     text-align: center;
-    background-color: #33E3FF;
     height: 40px;
     line-height: 40px;
     border-bottom: 1px solid #e2e2e2;
@@ -28,8 +26,6 @@
     padding: 20px;
     font-size: 20px;
     overflow: hidden;
-    background-image: url('../../../images/logo_blue.png');
-    background-size: cover;
 } 
 
 .job_footer {
@@ -52,6 +48,5 @@
 .job_card_button {
     height: inherit;
     width: 300px;
-    border-radius: 0 0 20px 20px;
     color: red;
 }
