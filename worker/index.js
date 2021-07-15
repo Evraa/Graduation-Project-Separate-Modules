@@ -1,4 +1,4 @@
-const amqp = require('amqplib/callback_api');
+const amqp = require('amqplib');
 const { execSync } = require('child_process');
 const fs  = require('fs');
 const fetch = require('node-fetch');
@@ -13,12 +13,71 @@ const MASTER_URL = process.env.MASTER_URL;
 const EMAIL = process.env.EMAIL;
 const PASSWORD = process.env.PASSWORD;
 const VIDEO_PATH = 'uploads/videos';
+const TOKEN_EXPIRY = parseInt(process.env.TOKEN_EXPIRY) || 1000*60*60*24;
 
 fs.mkdirSync(VIDEO_PATH, {recursive: true});
 
 const main = async () => {
     try {
-        const res  = await fetch(`${MASTER_URL}/api/user/login`, {
+        
+        let token = await login();
+        setInterval(async () => {
+            try {
+                token = await login();
+            } catch (error) {
+                console.error(error);
+                exit(-1);
+            }
+        }, TOKEN_EXPIRY);
+
+        console.log("Worker logged in successfully");
+        
+        const connection = await amqp.connect('amqp://localhost');
+            
+        const channel = await connection.createChannel();
+        
+        const queue = 'task_queue';
+
+        await channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(msg) {
+            
+            const obj = JSON.parse(msg.content);
+            console.log(" [x] Received %s", obj.type);
+
+            if (obj.type == 'video') {
+                process_video(obj.url, token)
+                .then(check => {
+                    if (check) {
+                        console.log(`Finished processing video: ${obj.url}`);
+                        channel.ack(msg);
+                    } else {
+                        throw new Error(`Error in processing video: ${obj.url}`);
+                    }
+                }).catch(err => console.log(err));
+            }
+            else {
+                console.log("Unsupported message");
+                channel.ack(msg);
+            }
+            
+        }, {
+            noAck: false
+        });
+
+    } catch (err) {
+        console.error(err);
+        exit(-1);
+    }
+    
+};
+
+const login = async () => {
+    try {
+        const res = await fetch(`${MASTER_URL}/api/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -26,63 +85,14 @@ const main = async () => {
             body: JSON.stringify({email: EMAIL, password: PASSWORD})
         });
         if (res.ok) {
-            const data = await res.json();
-            const token = data.token;
-            console.log("Worker logged in successfully");
-            
-            amqp.connect('amqp://localhost', function(error, connection) {
-                if (error) {
-                    throw error;
-                }
-                connection.createChannel(function(error, channel) {
-                    if (error) {
-                        throw error;
-                    }
-                    var queue = 'task_queue';
-            
-                    channel.assertQueue(queue, {
-                        durable: true
-                    });
-                    channel.prefetch(1);
-                    console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-                    channel.consume(queue, function(msg) {
-                        
-                        const obj = JSON.parse(msg.content);
-                        console.log(" [x] Received %s", obj.type);
-            
-                        if (obj.type == 'video') {
-                            process_video(obj.url, token)
-                            .then(check => {
-                                if (check) {
-                                    console.log(`Finished processing video: ${obj.url}`);
-                                    channel.ack(msg);
-                                } else {
-                                    console.log(`Error in processing video: ${obj.url}`);
-                                }
-                            }).catch(err => console.log(err));
-                        }
-                        else {
-                            console.log("Unsupported message");
-                            channel.ack(msg);
-                        }
-                        
-                    }, {
-                        noAck: false
-                    });
-                });
-            });
-            
+            return (await res.json()).token;
         } else {
-            const data = await res.json();
-            console.log("Couldn't login worker");
-            console.log(data);
-            exit(-1);
-        }  
-    } catch (err) {
-        console.error(err);
-        exit(-1);
+            throw (await res.json());
+        }    
+    } catch (error) {
+        console.log(error);
+        throw new Error("Couldn't login worker");
     }
-    
 };
 
 const process_video = async (url, token) => {
