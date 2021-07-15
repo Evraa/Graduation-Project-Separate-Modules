@@ -3,7 +3,9 @@ const path = require('path');
 const multer = require('multer');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const MessageBroker = require('../middleware/MessageBroker');
 const fs = require('fs');
+const User = require('../models/User');
 
 const view = (req, res) => {
     Application.findById(req.params.id)
@@ -276,7 +278,7 @@ const uploadVideo = multer({
     })
 });
 
-// if resume already exists, it updates it
+// if video already exists, it updates it
 const storeVideo = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
@@ -304,8 +306,12 @@ const storeVideo = async (req, res) => {
         date: new Date()
     };
     application.updateOne({video}).then(_ => {
+        return MessageBroker.getInstance();
+    }).then(mBroker => {
+        mBroker.send(Buffer.from(JSON.stringify({type:'video', url:video.url})));
         res.json({video});
-    }).catch(error => {
+    })
+    .catch(error => {
         res.status(400).json(error);
     });
 };
@@ -358,6 +364,47 @@ const destroyVideo = (req, res) => {
     res.json({msg: "video is deleted successfully"});
 };
 
+const verifyAnalyzedVideo = () => {
+    return [
+        body('jobID').notEmpty().withMessage("jobID is required").bail()
+        .isMongoId().withMessage("jobID should be a valid job ID").bail()
+        .custom(async (val) => {
+            const job = await Job.findById(val);
+            if (job) {
+                return true;
+            }
+            throw new Error("Job ID is not found");
+        }), 
+        body('applicantID').notEmpty().withMessage("applicationID is required").bail()
+        .isMongoId().withMessage("applicantID should be a valid applicant ID").bail()
+        .custom(async (val) => {
+            const user = await User.findById(val);
+            if (user) {
+                return true;
+            }
+            throw new Error("User ID is not found");
+        })
+    ];
+};
+
+const storeAnalyzedVideo = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const application = await Application.findOne({jobID: req.body.jobID, applicantID: req.body.applicantID});
+    if (application) {
+        application.updateOne({analyzedVideo: req.body.analyzedVideo}).then(updatedApp => {
+            res.json({analyzedVideo: req.body.analyzedVideo});
+        }).catch(error => {
+            console.log(error);
+        });
+    } else {
+        res.status(404).json({errors: [{"msg": "Application is not found"}]});    
+    }
+};
+
 module.exports = {
     view,
     verifyJobID,
@@ -370,5 +417,7 @@ module.exports = {
     uploadVideo,
     storeVideo,
     viewVideo,
-    destroyVideo
+    destroyVideo,
+    verifyAnalyzedVideo,
+    storeAnalyzedVideo
 };

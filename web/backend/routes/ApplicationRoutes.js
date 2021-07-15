@@ -1,9 +1,12 @@
 const { Router, application } = require("express");
 const applicationController = require("../controllers/ApplicationController");
 const { requireAuth } = require("../middleware/authenticate");
-const { authorizeApplicant } = require("../middleware/authorize");
+const { authorizeApplicant, authorizeHR } = require("../middleware/authorize");
 
 const router = Router();
+
+router.post('/api/application/storeAnalyzedVideo', requireAuth, authorizeHR, 
+    applicationController.verifyAnalyzedVideo(), applicationController.storeAnalyzedVideo);
 
 router.get('/api/application/:id', requireAuth, applicationController.view);
 
