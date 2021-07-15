@@ -25,7 +25,10 @@ def extract_text_from_pdf(pdf_path):
     '''
     return extract_text(pdf_path)
 
-
+def extract_from_text(path):
+    with open (path, "r") as myfile:
+        data = myfile.read()
+    return data
 
 def extract_names(txt):
     person_names = []
@@ -105,7 +108,7 @@ def remove_noisy_words(text):
     return filtered_tokens
 
 
-def get_parsed_data(path, verbose=True):
+def get_parsed_data(path):
     """
         The main function for this module.
 
@@ -120,6 +123,7 @@ def get_parsed_data(path, verbose=True):
     # read the file
     if ext == "pdf": text = extract_text_from_pdf(path)
     elif ext == "docx": text = extract_text_from_docx(path)
+    elif ext == "txt": text = extract_from_text(path)
     else: 
         err_msg = "Error: extension "+ext+ "is not supported yet!"
         # os.remove(path)

@@ -40,10 +40,11 @@ def load_wv(path):
     return KeyedVectors.load(path, mmap='r')
 
 
-def run(jd, cvs_path):
+def run(jd_path, cvs_path):
     # Parse jd
     try:
-        jd_tokens = remove_noisy_words(jd)
+        jd_file = os.path.join(jd_path, os.listdir(jd_path)[0])
+        jd_tokens = get_parsed_data(jd_file)
     except Exception as e:
         report_error(e)
 
@@ -55,7 +56,8 @@ def run(jd, cvs_path):
         # Make sure file exist
         if not os.path.exists(file_path):
             error_msg = "File does not exist: "+file_path 
-            report_error(error_msg)
+            print(error_msg)
+            # report_error(error_msg)
 
         try:
             state, cv_tokens = get_parsed_data(file_path)
@@ -63,7 +65,10 @@ def run(jd, cvs_path):
             if not state: report_error(cv_tokens) 
             cvs[file] = cv_tokens
         except:
-            report_error(f"Error occured WHILE parsing file: {file}")
+            print(f"Error occured WHILE parsing file: {file}")
+
+    if len(cvs) == 0:
+        report_error("No cvs are handeled!")
 
     score_dict = {}
     try:
@@ -92,15 +97,16 @@ def run(jd, cvs_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path",  required=True)   
-    parser.add_argument("-jd", "--job", required=True)
+    # parser.add_argument("-jd", "--job", required=True)
     parser.add_argument("-rp", "--resultsPath", required=True)
     parser.add_argument("-m", "--model", required=False, default="../model/word2vec_vs_300_ep_150_sg_alpha_0.001.wordvectors")
-    
     args = parser.parse_args()
+    
     # fetch data from argparser
     main_directory_path = args.path
     cvs_path = os.path.join(main_directory_path, "cv")
-    jd = args.job
+    jd_path = os.path.join(main_directory_path, "jd")
+    # jd = args.job
     results_path = args.resultsPath
     model_path = args.model
     
@@ -112,6 +118,9 @@ if __name__ == '__main__':
     
     if not os.path.exists(cvs_path):
         report_error(msg="CV path does not exist!")
+
+    if not os.path.exists(jd_path):
+        report_error(msg="JD path does not exist!")
     
     if not os.path.exists(model_path):
         report_error(msg="Model path does not exist!")
@@ -120,7 +129,7 @@ if __name__ == '__main__':
     wv = load_wv(path = model_path)
     
     # Run model
-    sorted_score_dict = run(jd, cvs_path)
+    sorted_score_dict = run(jd_path, cvs_path)
     
     # Store results
     for name, scores in sorted_score_dict.items():
