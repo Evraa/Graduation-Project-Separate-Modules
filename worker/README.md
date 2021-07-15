@@ -3,9 +3,10 @@
     ```shell
     npm install
     ```
-2. Sign up hr user for this worker to make requests with.
-3. Make a new file called `.env` and copy the contents of `.env.example` file in it, and change the config variables.
-4. To run the server, run  
+2. install [RabbitMQ](https://www.rabbitmq.com/download.html)
+3. Sign up hr user for this worker to make requests with.
+4. Make a new file called `.env` and copy the contents of `.env.example` file in it, and change the config variables.
+5. To run the server, run  
     ```shell
     node app.js
     ```  

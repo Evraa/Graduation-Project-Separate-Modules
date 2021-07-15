@@ -43,10 +43,12 @@ def load_wv(path):
 def run(jd_path, cvs_path):
     # Parse jd
     try:
-        jd_file = os.path.join(jd_path, os.listdir(jd_path)[0])
-        jd_tokens = get_parsed_data(jd_file)
+        state, jd_tokens = get_parsed_data(jd_path)
     except Exception as e:
         report_error(e)
+
+    if not state:
+        report_error(jd_tokens)
 
     # Parse cvs
     files = os.listdir(cvs_path)
@@ -62,8 +64,8 @@ def run(jd_path, cvs_path):
         try:
             state, cv_tokens = get_parsed_data(file_path)
             # In case any error occured
-            if not state: report_error(cv_tokens) 
-            cvs[file] = cv_tokens
+            if state: 
+                cvs[file] = cv_tokens
         except:
             print(f"Error occured WHILE parsing file: {file}")
 
@@ -74,8 +76,8 @@ def run(jd_path, cvs_path):
     try:
         # calculate tfidf score
         tfidf_scores = tfidf(words_vector=wv, query=jd_tokens, cvs=cvs, n_extend=2)
-    except:
-        report_error("Error occured while tf-idf cvs")
+    except Exception as e:
+        report_error(f"Error occured while tf-idf cvs:\n{e}")
 
     # calculate cosine scores
     for resume_id, resume in cvs.items():
@@ -97,15 +99,15 @@ def run(jd_path, cvs_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path",  required=True)   
-    # parser.add_argument("-jd", "--job", required=True)
+    parser.add_argument("-jd", "--job", required=True)
     parser.add_argument("-rp", "--resultsPath", required=True)
     parser.add_argument("-m", "--model", required=False, default="../model/word2vec_vs_300_ep_150_sg_alpha_0.001.wordvectors")
     args = parser.parse_args()
     
     # fetch data from argparser
     main_directory_path = args.path
-    cvs_path = os.path.join(main_directory_path, "cv")
-    jd_path = os.path.join(main_directory_path, "jd")
+    cvs_path = main_directory_path
+    jd_path = args.job
     # jd = args.job
     results_path = args.resultsPath
     model_path = args.model
