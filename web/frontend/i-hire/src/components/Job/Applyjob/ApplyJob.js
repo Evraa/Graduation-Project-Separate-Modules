@@ -45,7 +45,7 @@ function ApplyJob() {
 
     return (
         <Stack vertical className='apply_job_main'>
-            <div style={{fontSize:'50px', alignSelf: 'start', paddingBottom: '30px'}}>
+            <div style={{fontSize:'50px', alignSelf: 'start', paddingBottom: '30px', fontWeight: 'bold', color: 'blue'}}>
                 Apply on Job
             </div>
 
@@ -126,7 +126,9 @@ function ApplyJob() {
 
 
             <div style={{padding: '40px', paddingRight:'15%', width: '100%', textAlign: 'right'}}>
-            <DefaultButton text='Apply' iconProps={TaskSolid} styles={{root:{alignSelf:'end'}}} />
+            <DefaultButton text='Apply' iconProps={TaskSolid} 
+            styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}} 
+            />
             </div>
         </Stack>
     )

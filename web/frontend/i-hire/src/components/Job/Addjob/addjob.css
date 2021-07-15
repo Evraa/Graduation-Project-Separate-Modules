@@ -1,0 +1,29 @@
+.add_job_main {
+    margin-left: 10%;
+    margin-right: 10%;
+    padding: 20px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.add_job_section_content {
+    padding: 10px;
+    margin-top: 20px;
+    width: 70%;
+}
+.add_job_title_section_content {
+    padding: 10px;
+    margin-top: 20px;
+    width: 50%;
+    margin-bottom: 20px;
+}
+
+.add_job_question {
+    padding: 10px;
+    margin-top: 20px;
+    width: 100%;
+}
+.add_job_question:hover {
+    background-color: #f2f2f2;
+}
