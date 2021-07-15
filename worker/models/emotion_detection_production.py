@@ -162,7 +162,7 @@ def store_response():
         Stores the json response, named with the video name extracted from the video path.
     '''
     try:
-        file_path = video_path.split("/")[-1].split(".")[0] + ".json"
+        file_path = 'output/' + video_path.split("/")[-1].split(".")[0] + ".json"
         
         with open(file_path, 'w') as fp:
             json.dump(response, fp)
