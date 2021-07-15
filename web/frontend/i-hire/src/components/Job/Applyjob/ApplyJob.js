@@ -1,10 +1,16 @@
-import { Stack, IconButton, TextField, DefaultButton } from '@fluentui/react';
+import { Stack, IconButton, TextField, DefaultButton, Label } from '@fluentui/react';
 import React, {useState} from 'react'
 import './applyjob.css'
 
 function ApplyJob() {
 
 
+    const jobTitle = 'Software Engineer';
+    const jobDescription = 'Software Engineer at google';
+
+
+    const [viewTitleSection, setviewTitleSection] = useState(false);
+    const [viewDescriptionSection, setviewDescriptionSection] = useState(false);
     const [viewCVSection, setviewCVSection] = useState(false);
     const [viewVideoSection, setviewVideoSection] = useState(false);
     const [viewQSection, setviewQSection] = useState(false);
@@ -47,6 +53,50 @@ function ApplyJob() {
         <Stack vertical className='apply_job_main'>
             <div style={{fontSize:'50px', alignSelf: 'start', paddingBottom: '30px', fontWeight: 'bold', color: 'blue'}}>
                 Apply on Job
+            </div>
+
+
+
+            <div style={{width:'100%'}} >
+                <div className='apply_job_title' onClick={()=>setviewTitleSection(previousState => !previousState)}>
+                    <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
+                        <div>
+                            Job Title
+                        </div>
+                        <IconButton iconProps={viewTitleSection? ChevronUp: ChevronDown} 
+                        title="Chevron" ariaLabel="Chevron" disabled={false}
+                        />
+                    </Stack>
+                </div>
+                {
+                    viewTitleSection &&
+                    <Label
+                        className='add_job_title_section_content'
+                        styles={{root:{textAlign:'start'}}}
+                    >{jobTitle}</Label>
+                }
+            </div>
+
+
+
+            <div style={{width:'100%'}} >
+                <div className='apply_job_title' onClick={()=>setviewDescriptionSection(previousState => !previousState)}>
+                    <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
+                        <div>
+                            Job Description
+                        </div>
+                        <IconButton iconProps={viewDescriptionSection? ChevronUp: ChevronDown} 
+                        title="Chevron" ariaLabel="Chevron" disabled={false}
+                        />
+                    </Stack>
+                </div>
+                {
+                    viewDescriptionSection &&
+                    <Label 
+                        className='add_job_title_section_content'
+                        styles={{root:{textAlign:'start'}}}
+                    >{jobDescription}</Label>
+                }
             </div>
 
 
@@ -126,9 +176,10 @@ function ApplyJob() {
 
 
             <div style={{padding: '40px', paddingRight:'15%', width: '100%', textAlign: 'right'}}>
-            <DefaultButton text='Apply' iconProps={TaskSolid} 
-            styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}} 
-            />
+                <DefaultButton 
+                    text='Apply' iconProps={TaskSolid} 
+                    styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}} 
+                />                      
             </div>
         </Stack>
     )

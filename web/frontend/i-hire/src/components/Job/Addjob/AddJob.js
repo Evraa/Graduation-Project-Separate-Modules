@@ -11,9 +11,11 @@ function AddJob() {
 
     const [reqVideo, setreqVideo] = useState(false);
     const [jobTitle, setjobTitle] = useState(false);
+    const [jobDescription, setjobDescription] = useState(false);
 
 
     const [viewTitleSection, setviewTitleSection] = useState(false);
+    const [viewDescriptionSection, setviewDescriptionSection] = useState(false);
     const [viewVideoSection, setviewVideoSection] = useState(false);
     const [viewQSection, setviewQSection] = useState(false);
     const [viewAddQSection, setviewAddQSection] = useState(false);
@@ -150,6 +152,33 @@ function AddJob() {
                 </div>
 
 
+
+                <div style={{width:'100%'}} >
+                    <div className='apply_job_title' onClick={()=>setviewDescriptionSection(previousState => !previousState)}>
+                        <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
+                            <div>
+                                Job Description
+                            </div>
+                            <IconButton iconProps={viewDescriptionSection? ChevronUp: ChevronDown} 
+                            title="Chevron" ariaLabel="Chevron" disabled={false}
+                            />
+                        </Stack>
+                    </div>
+                    {
+                        viewDescriptionSection &&
+                        <TextField 
+                        label='Job Description'
+                        type="text"
+                        required
+                        multiline={true}
+                        className='add_job_title_section_content'
+                        styles={{root:{textAlign:'start'}}}
+                        value={jobDescription}
+                        onChange={(e) => setjobDescription(e.target.value)}/>
+                    }
+                </div>
+
+
                 <div style={{width:'100%'}} >
                     <div className='apply_job_title' onClick={()=>setviewVideoSection(previousState => !previousState)}>
                         <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
@@ -213,6 +242,14 @@ function AddJob() {
                         </Stack>
                     </div>
                     { viewQSection && questionElement }
+                </div>
+
+
+                <div style={{padding: '40px', paddingRight:'15%', width: '100%', textAlign: 'right'}}>
+                    <DefaultButton 
+                        text='Create Job' iconProps={{iconName:"TaskSolid"}}
+                        styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}} 
+                    />                      
                 </div>
             </Stack>
 

@@ -2,6 +2,13 @@
 .homecontainer {
     display: flex;
     align-items: left;
-    width: 1500px;
-    padding-left: 90px;
+    text-align: left;
+    padding-bottom: 80px;
+    width: 100%;
+}
+.homepage_main {
+    margin-left: 10%;
+    margin-right: 10%;
+    padding: 20px;
+    margin-top: 20px;
 }
