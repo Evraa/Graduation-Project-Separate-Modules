@@ -4,7 +4,7 @@ import os
 import time
 import pandas as pd
 # local imports
-from parser import get_parsed_data, extract_text_from_pdf
+from parser_utils import get_parsed_data, extract_text_from_pdf
 from utils import fetch_data, evaluate_pereformance
 
 class Resumes():

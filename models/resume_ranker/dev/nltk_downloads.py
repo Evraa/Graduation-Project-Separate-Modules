@@ -6,10 +6,10 @@ nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
 nltk.download('stopwords')
-nltk.download('wordnet')
+# nltk.download('wordnet')
 
 # lists of words needed to be loaded once
 stop_words = set(nltk.corpus.stopwords.words('english'))
-porter = nltk.PorterStemmer()
+# porter = nltk.PorterStemmer()
 # lancaster = nltk.LancasterStemmer()
-wnl = nltk.WordNetLemmatizer()
+# wnl = nltk.WordNetLemmatizer()
