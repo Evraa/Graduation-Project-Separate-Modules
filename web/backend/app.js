@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const path = require('path');
 const morgan = require('morgan');
+const cors = require('cors');
 const { checkUser } = require('./middleware/authenticate');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(passport.initialize());
 app.use(express.urlencoded({extended:true}));
+app.use(cors());
 
 app.use('*', checkUser);
 
