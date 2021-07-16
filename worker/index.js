@@ -57,7 +57,7 @@ const main = async () => {
                     } else {
                         throw new Error(`Error in processing video: ${obj.url}`);
                     }
-                }).catch(err => console.log(err));
+                }).catch(err => {throw new Error(err);});
             }
             else {
                 console.log("Unsupported message");
@@ -70,6 +70,9 @@ const main = async () => {
 
     } catch (err) {
         console.error(err);
+        if (connection) {
+            connection.close();
+        }
         exit(-1);
     }
     
@@ -119,6 +122,9 @@ const process_video = async (url, token) => {
         const fileBaseName = path.basename(url).split('.')[0];
         const outFileName = 'output/' + fileBaseName + '.json';
         const data =  JSON.parse(fs.readFileSync(outFileName));
+        if (!data.success) {
+            throw new Error(data.error);
+        }
         const res = await fetch(`${MASTER_URL}/api/application/storeAnalyzedVideo`, {
             method: "POST",
             headers: {
@@ -138,6 +144,7 @@ const process_video = async (url, token) => {
         }
     } catch (err) {
         console.error(err);
+        throw new Error(err);
     }
     return false;
 };

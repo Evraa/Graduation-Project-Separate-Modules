@@ -3,8 +3,7 @@ import numpy as np
 from scipy.spatial import distance
 from gensim.models import KeyedVectors
 import math
-#local imports
-from parser_utils import remove_noisy_words
+
 
 
 

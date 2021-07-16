@@ -6,7 +6,6 @@ pip install numpy
 pip install gensim
 pip install python-Levenshtein
 pip install pandas
-pip install numpy
 
 ## data
     test: https://www.kaggle.com/airiddha/trainrev1
