@@ -7,8 +7,8 @@ import { useHistory } from "react-router-dom";
 
 function JobCard() {
 
-    const signedin = useSelector(state => state.isSignedin).isSignedin;
     const curUser = useSelector(state => state.currentUser);
+    const signedin = curUser.isSignedIn;
     const viewsStatsFlag = curUser.role === 'hr' || curUser.role === 'admin';
     const enableApply = false;
     const history = useHistory();
@@ -47,10 +47,10 @@ function JobCard() {
                     />
                 }
                 {
-                    !signedin && !viewsStatsFlag &&
+                    !viewsStatsFlag &&
                     <PrimaryButton 
                     onClick={applyJob} text = "Apply Job" className='job_card_button'
-                    disabled={enableApply}  styles={buttonStyles}
+                    disabled={enableApply || !signedin}  styles={buttonStyles}
                     />
                 }
             </div>

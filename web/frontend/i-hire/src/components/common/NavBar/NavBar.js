@@ -1,16 +1,21 @@
 import React from 'react'
 import { Link } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import './navbar.css';
+import { setIsLoading, resetIsLoading, resetCurrentUser} from '../../../redux/index'
 
 function NavBar() {
 
-    const signedin = useSelector(state => state.isSignedin).isSignedin;
     const curUser = useSelector(state => state.currentUser);
+    const signedin = curUser.isSignedIn;
     const createFlag = curUser.role === 'hr' || curUser.role === 'admin';
+    const dispatch = useDispatch();
 
     const logOut = () => {
-        console.log("log out");     // log out
+        dispatch(setIsLoading());
+        dispatch(resetCurrentUser());
+        window.localStorage.setItem("token", "");
+        dispatch(resetIsLoading());
     }
 
 
