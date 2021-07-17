@@ -22,7 +22,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 10;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    Job.find({enabled: true}).skip(skip).limit(PAGE_SIZE)
+    Job.find({enabled: true}, '-rankedApplicants').skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -56,7 +56,7 @@ const search = (req, res) => {
     Job.find({
         enabled: true,
         $or: [{title: RegExp(query, "i")}, {description: RegExp(query, "i")}],
-    }).skip(skip).limit(PAGE_SIZE)
+    }, '-rankedApplicants').skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -67,7 +67,7 @@ const search = (req, res) => {
 };
 
 const view = (req, res) => {
-    Job.findById(req.params.id)
+    Job.findById(req.params.id, '-rankedApplicants')
     .then(job => {
         if (job) {
             res.json(job);
