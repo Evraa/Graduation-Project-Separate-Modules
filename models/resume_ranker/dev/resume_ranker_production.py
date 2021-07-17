@@ -20,8 +20,7 @@ def store_response():
         Stores the json response, named with the video name extracted from the video path.
     '''
     try:
-        file_path = os.path.join(results_path, "results.json")
-        
+        file_path = results_path
         with open(file_path, 'w') as fp:
             json.dump(response, fp)
             
@@ -114,9 +113,6 @@ if __name__ == '__main__':
     
 
     # Validate the data
-    if not os.path.exists(results_path):
-        results_path = "/"
-        report_error(msg="Results path does not exist!")
     
     if not os.path.exists(cvs_path):
         report_error(msg="CV path does not exist!")
@@ -135,12 +131,8 @@ if __name__ == '__main__':
     
     # Store results
     for name, scores in sorted_score_dict.items():
-        result = []
-        result.append(name)
-        result.append(scores[0])
-        result.append(scores[1])
 
-        response["results"].append(result)
+        response["results"].append({'id': name, 'scores': scores})
     
     store_response()
     sys.exit(0)

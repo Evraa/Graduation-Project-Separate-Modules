@@ -28,8 +28,10 @@ const jobSchema = new Schema({
         default: true,
         select: false
     },
-    applicationIDs: [{type: Schema.Types.ObjectId, ref: "Application"}]|null,
-    rankedApplicants: [{type: Schema.Types.ObjectId, ref: "User"}]|null
+    rankedApplicants: [{
+        id: {type: Schema.Types.ObjectId, ref: "User"},
+        scores: [Number]
+    }]|null
 }, {timestamps: true});
 
 const Job = model('Job', jobSchema);

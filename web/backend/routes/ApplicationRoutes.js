@@ -8,7 +8,11 @@ const router = Router();
 router.post('/api/application/storeAnalyzedVideo', requireAuth, authorizeHR, 
     applicationController.verifyAnalyzedVideo(), applicationController.storeAnalyzedVideo);
 
+router.post('/api/application/:id/storeAnalyzedPersonality', requireAuth, authorizeHR, 
+    applicationController.verifyAnalyzedPersonality(), applicationController.storeAnalyzedPersonality);
+
 router.get('/api/application/:id', requireAuth, applicationController.view);
+router.get('/api/application/:id/answers', requireAuth, authorizeHR, applicationController.viewAnswers);
 
 router.post('/api/application/:jobID', requireAuth, authorizeApplicant,
     applicationController.verifyJobID(), applicationController.verifyAnswers(),

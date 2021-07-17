@@ -1,6 +1,9 @@
-const { body, validationResult, query } = require('express-validator');
+const { body, validationResult, query, param } = require('express-validator');
 const lo = require('lodash');
+const Application = require('../models/Application');
 const Job = require('../models/Job');
+const User = require('../models/User');
+const MessageBroker = require('../middleware/MessageBroker');
 
 const verifyIndex = () => {
     return [
@@ -76,6 +79,134 @@ const view = (req, res) => {
     .catch( err => {
         res.status(404).json({errors: [{"msg": "invalid job ID"}]});    
     });
+};
+
+const verifyJobID = () => {
+    return param('id').isMongoId().withMessage("jobID should be a valid job ID").bail()
+    .custom(async (val) => {
+        const job = await Job.findById(val);
+        if (job) {
+            return true;
+        }
+        throw new Error("Job ID is not found");
+    });
+};
+
+const getResumes = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    try {
+        const resumes = await Application.find({
+            jobID: req.params.id, resume: {$exists: true}
+        }, "resume applicantID -_id").exec();
+        if (resumes && resumes.length) {
+            res.json(resumes);
+        } else {
+            res.status(400).json({msg: "No resumes for this job"});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500);
+    }
+};
+
+const analyzeResumes = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    const job = await Job.findById(req.params.id);
+    if (job) {
+        const mBroker = await MessageBroker.getInstance();
+        mBroker.send(Buffer.from(JSON.stringify({
+            type: "resumes",
+            jobID: job._id,
+            jobDescription: job.description
+        })));
+        res.json({msg: "Resumes is being processed"});
+    } else {
+        res.status(404).json({errors: [{"msg": "Job is not found"}]});
+    }
+};
+
+const verifyRankedApplicants = () => {
+    return [
+        body('rankedApplicants').notEmpty().withMessage("rankedApplicants should be a non-empty array").bail()
+        .isArray().withMessage("rankedApplicants should be an array").bail(),
+        body('rankedApplicants.*.id').isMongoId().withMessage("id should be a valid user ID").bail()
+        .custom(async (val) => {
+            const user = await User.findById(val);
+            if (user) {
+                return true;
+            }
+            throw new Error("User ID is not found");
+        }),
+        body('rankedApplicants.*.scores').notEmpty().withMessage("scores is required").bail()
+        .isArray().withMessage("scores should be an array"),
+        body('rankedApplicants.*.scores.*').isNumeric().withMessage("scores should be numbers")
+    ];
+};
+
+const storeRankedApplicants = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    try {
+        const job = await Job.findById(req.params.id);
+        if (job) {
+            await job.updateOne({rankedApplicants: req.body.rankedApplicants});
+            res.json({rankedApplicants: req.body.rankedApplicants});
+        } else {
+            res.status(404).json({errors: [{"msg": "Job is not found"}]});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500);
+    }
+    
+};
+
+const getRankedApplicants = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    try {
+        const job = await Job.findById(req.params.id);
+        const limit = 10;
+        const page = req.query.page || 1;
+        const skip = (page-1)*limit;
+        const numOfPages = Math.ceil(job.rankedApplicants.length/limit);
+        if (job) {
+            const users = job.rankedApplicants.slice(skip, skip+limit);
+            const userData = [];
+            const appData = [];
+            for (const user of users) {
+                userData.push(User.findById(user.id, 'email name picture'));
+                appData.push(Application.find({applicantID: user.id, jobID: job.id}, '-jobID -applicantID'));
+            }
+            // send response after all data are gathered
+            Promise.allSettled([Promise.allSettled(userData), Promise.allSettled(appData)]).then(data => {
+                for (let i = 0; i < users.length; i++) {
+                    users[i].data = data[0].value[i].value;
+                    users[i].application = data[1].value[i].value;
+                }
+                res.json({users, page, numOfPages});
+            }).catch(err => console.log(err));
+        } else {
+            res.status(404).json({errors: [{"msg": "Job is not found"}]});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500);
+    }
 };
 
 const verifyStore = () => {
@@ -202,6 +333,12 @@ module.exports = {
     verifySearch,
     search,
     view,
+    verifyJobID,
+    getResumes,
+    analyzeResumes,
+    verifyRankedApplicants,
+    storeRankedApplicants,
+    getRankedApplicants,
     verifyStore,
     store,
     enable,
