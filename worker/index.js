@@ -14,6 +14,7 @@ const EMAIL = process.env.EMAIL;
 const PASSWORD = process.env.PASSWORD;
 const VIDEO_PATH = 'uploads/videos';
 const TOKEN_EXPIRY = parseInt(process.env.TOKEN_EXPIRY) || 1000*60*60*24;
+var connection;
 
 fs.mkdirSync(VIDEO_PATH, {recursive: true});
 
@@ -28,11 +29,11 @@ const main = async () => {
                 console.error(error);
                 exit(-1);
             }
-        }, TOKEN_EXPIRY);
+        }, TOKEN_EXPIRY - 1000);
 
         console.log("Worker logged in successfully");
         
-        const connection = await amqp.connect('amqp://localhost');
+        connection = await amqp.connect(process.env.RABBITMQ_URL);
             
         const channel = await connection.createChannel();
         
@@ -55,11 +56,19 @@ const main = async () => {
                         console.log(`Finished processing video: ${obj.url}`);
                         channel.ack(msg);
                     } else {
-                        throw new Error(`Error in processing video: ${obj.url}`);
+                        console.log(`Error in processing video: ${obj.url}`);
+                        exit(-1);
                     }
                 }).catch(err => {throw new Error(err);});
-            }
-            else {
+            } else if (obj.type == 'resumes') {
+                process_resumes(obj.jobID, obj.jobDescription, token).then(() => {
+                    console.log(`Finsihd processing resumes for job: ${obj.jobID}`);
+                    channel.ack(msg);
+                }).catch(err => {
+                    console.log(`Error in processing resumes for job: ${obj.jobID}`);
+                    exit(-1);
+                });
+            } else {
                 console.log("Unsupported message");
                 channel.ack(msg);
             }
@@ -147,6 +156,74 @@ const process_video = async (url, token) => {
         throw new Error(err);
     }
     return false;
+};
+
+const process_resumes = async (jobID, jobDescription, token) => {
+    const RESUME_FOLDER = `uploads/resumes/${jobID}/cv`;
+    const JOB_FILE_NAME = `uploads/resumes/${jobID}/description.txt`;
+    const OUT_FILE_NAME = `output/${jobID}.json`;
+    const MODEL_FILE_NAME = 'models/resume_ranker_model/model/word2vec_vs_300_ep_150_sg_alpha_0.001.wordvectors';
+    const CODE_FILE_NAME = 'models/resume_ranker_model/resume_ranker_production.py';
+
+    try {
+        fs.mkdirSync(RESUME_FOLDER, {recursive:true});
+        fs.mkdirSync('output');
+        const res = await fetch(`${MASTER_URL}/api/job/${jobID}/resumes`, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        if (res.ok) {
+            const resumes = await res.json();
+            for (const obj of resumes) {
+                const [name, ext] = path.basename(obj.resume.url).split('.');
+                const fileName = path.join(RESUME_FOLDER, obj.applicantID) + '.' + ext;
+                if (!fs.existsSync(fileName)) {
+                    const resumeRes = await fetch(`${MASTER_URL}/${obj.resume.url}`, {
+                        headers: {
+                            "Authorization": "Bearer " + token
+                        }
+                    });
+                    if (resumeRes.ok) {
+                        fs.writeFileSync(fileName, Buffer.from(await(await resumeRes.blob()).arrayBuffer()));
+                    } else {
+                        console.log(await resumeRes.json());
+                        throw new Error(`Couldn't fetch resume: ${obj.resume.url}`);
+                    }
+                }
+            }
+        } else {
+            console.log(await res.json());
+            throw new Error(`Couldn't fetch job resumes for job ID:${jobID}`);
+        }
+        
+        fs.writeFileSync(JOB_FILE_NAME, jobDescription);
+        execSync(`python ${CODE_FILE_NAME} -p=${RESUME_FOLDER} -jd=${JOB_FILE_NAME} -rp=${OUT_FILE_NAME} -m=${MODEL_FILE_NAME}`);
+        const results = JSON.parse(fs.readFileSync(OUT_FILE_NAME));
+        if (!results.success) {
+            console.log(results.error);
+            throw new Error("Error in running python code on resumes");
+        }
+
+        const storeRes = await fetch(`${MASTER_URL}/api/job/${jobID}/rankedApplicants`, {
+            method: "POST",
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rankedApplicants: results.results
+            })
+        });
+        if (!storeRes.ok) {
+            console.log(await storeRes.json());
+            throw new Error("Couldn't store rankedApplicants");
+        }
+
+    } catch (error) {
+        console.log(error);
+        throw new Error("Error in process_resumes");
+    }
 };
 
 main();

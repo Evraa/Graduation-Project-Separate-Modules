@@ -9,6 +9,13 @@ router.get('/', jobController.verifyIndex(), jobController.index);
 router.get('/search', jobController.verifySearch(), jobController.search);
 
 router.get('/:id', jobController.view);
+router.get('/:id/resumes', requireAuth, authorizeHR, jobController.verifyJobID(), jobController.getResumes);
+
+router.get('/:id/analyzeResumes', requireAuth, authorizeHR, jobController.analyzeResumes);
+router.post('/:id/rankedApplicants', requireAuth, authorizeHR, 
+    jobController.verifyRankedApplicants(), jobController.storeRankedApplicants);
+router.get('/:id/rankedApplicants', requireAuth, authorizeHR, 
+    jobController.verifyIndex(), jobController.getRankedApplicants);
 
 router.post('/', requireAuth, authorizeHR, jobController.verifyStore(), jobController.store);
 

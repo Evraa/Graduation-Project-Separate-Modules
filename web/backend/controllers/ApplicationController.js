@@ -120,15 +120,6 @@ const store = async (req, res) => {
         else {
             Application.create(data).then(application => {
                 res.json({created: application});
-                if (!job.applicationIDs) {
-                    job.applicationIDs = [];
-                }
-                job.applicationIDs.push(application.id);
-                job.updateOne({applicationIDs: job.applicationIDs}, (err, res) =>{
-                    if (err) {
-                        console.log(err);
-                    }
-                });
                 if (!req.user.applications) {
                     req.user.applications = [];
                 }
