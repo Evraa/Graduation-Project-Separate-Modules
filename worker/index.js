@@ -68,6 +68,14 @@ const main = async () => {
                     console.log(`Error in processing resumes for job: ${obj.jobID}`);
                     exit(-1);
                 });
+            } else if (obj.type == 'answers') {
+                process_answers(obj.applicationID, token).then(() => {
+                    console.log(`Finsihd processing personality for application: ${obj.applicationID}`);
+                    channel.ack(msg);
+                }).catch(err => {
+                    console.log(`Error in processing personality for application: ${obj.applicationID}`);
+                    exit(-1);
+                });
             } else {
                 console.log("Unsupported message");
                 channel.ack(msg);
@@ -224,6 +232,61 @@ const process_resumes = async (jobID, jobDescription, token) => {
         console.log(error);
         throw new Error("Error in process_resumes");
     }
+};
+
+const process_answers = async (applicationID, token) => {
+    const TEXT_FOLDER = 'uploads/text';
+    const OUT_FOLDER = `output/text`;
+    const CODE_PATH = " models/Personality/Personality_detection_production.py";
+    const INPUT_PATH = `${TEXT_FOLDER}/${applicationID}.txt`;
+    const MODEL_PATH = "models/Personality/bert_base_model.h5";
+    const OUTPUT_PATH = `${OUT_FOLDER}/${applicationID}.json`;
+
+    try {
+        fs.mkdirSync(TEXT_FOLDER, {recursive: true});
+        fs.mkdirSync(OUT_FOLDER, {recursive: true});
+        
+        // request the application answers
+        const res = await fetch(`${MASTER_URL}/api/application/${applicationID}/answers`, {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            }
+        });
+
+        if (res.ok) {
+            fs.writeFileSync(INPUT_PATH, Buffer.from((await res.json()).text));
+
+        } else {
+            const err = await res.json();
+            console.error(err);
+            throw new Error(`Couldn't fetch answers for application: ${applicationID}`);
+        }
+
+        execSync(`python ${CODE_PATH} -p=${INPUT_PATH} -m=${MODEL_PATH} -rp=${OUTPUT_PATH}`);
+        
+        const data =  JSON.parse(fs.readFileSync(OUTPUT_PATH));
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+        const storeRes = await fetch(`${MASTER_URL}/api/application/${applicationID}/storeAnalyzedPersonality`, {
+            method: "POST",
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                results: data.results
+            })
+        });
+        if (!storeRes.ok) {
+            console.log(await storeRes.json());
+            throw new Error("Could't store the analyzed personality");
+        }
+    } catch (err) {
+        console.error(err);
+        throw new Error(err);
+    }
+    return false;
 };
 
 main();

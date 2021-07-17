@@ -27,6 +27,23 @@ const view = (req, res) => {
     });
 };
 
+const viewAnswers = async (req, res) => {
+    try {
+        const app = await Application.findById(req.params.id, 'answers');
+        if (app) {
+            text = '';
+            for (const answer of app.answers) {
+                text += answer.answer + ' ';
+            }
+            res.json({text});
+        } else {
+            res.status(404).json({errors: [{"msg": "Application is not found"}]});    
+        }
+    } catch (error) {
+        res.status(404).json({errors: [{"msg": "Invalid application ID"}]});   
+    }
+};
+
 const verifyJobID = () => {
     return param('jobID').isMongoId().withMessage("jobID should be a valid job ID").bail()
     .custom(async (val) => {
@@ -113,6 +130,11 @@ const store = async (req, res) => {
         if (application) {
             application.updateOne(data).then(updatedApp => {
                 res.json({updated: data});
+                MessageBroker.getInstance().then(mBroker => {
+                    mBroker.send(Buffer.from(JSON.stringify({
+                        type: 'answers', applicationID: application.id
+                    })));
+                }).catch(error => console.log(error));
             }).catch(error => {
                 console.log(error);
             });
@@ -129,6 +151,11 @@ const store = async (req, res) => {
                         console.log(err);
                     }
                 });
+                MessageBroker.getInstance().then(mBroker => {
+                    mBroker.send(Buffer.from(JSON.stringify({
+                        type: 'answers', applicationID: application.id
+                    })));
+                }).catch(error => console.log(error));
             }).catch(error => {
                 console.log(error);
             });
@@ -396,8 +423,38 @@ const storeAnalyzedVideo = async (req, res) => {
     }
 };
 
+const verifyAnalyzedPersonality = () => {
+    return [
+        body('results').notEmpty().withMessage("results are required"),
+        body('results.type').notEmpty().withMessage("Type is requried").bail()
+        .isString().withMessage("Type should be a string"),
+        body('results.personality').notEmpty().withMessage("Personality is required").bail()
+        .isString().withMessage("personality should be a string")
+    ];
+};
+
+const storeAnalyzedPersonality = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    try {
+        const app = await Application.findById(req.params.id);
+        if (app) {
+            await app.updateOne({analyzedPersonality: req.body.results});
+            res.json({analyzedPersonality: req.body.results});
+        } else {
+            res.status(404).json({errors: [{"msg": "Application is not found"}]});    
+        }
+    } catch (error) {
+        res.status(404).json({errors: [{"msg": "Invalid application ID"}]});   
+    }
+};
+
 module.exports = {
     view,
+    viewAnswers,
     verifyJobID,
     verifyAnswers,
     store,
@@ -410,5 +467,7 @@ module.exports = {
     viewVideo,
     destroyVideo,
     verifyAnalyzedVideo,
-    storeAnalyzedVideo
+    storeAnalyzedVideo,
+    verifyAnalyzedPersonality,
+    storeAnalyzedPersonality
 };

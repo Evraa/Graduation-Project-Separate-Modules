@@ -20,44 +20,45 @@ maxlen = 512
 response = {
     "success": True,
     "error": "",
-    "Type":"",
-    "personality":""
+    "results": {
+        "type":"",
+        "personality":""
+    }
 }
 
 def map_personality(personality):
-    result = "personality is: "
     if personality == "INTJ":
-        return  result + "The Architect who's Imaginative, Strategic and Planner"
+        return  "The Architect who's Imaginative, Strategic and Planner"
     elif personality == "INTP":
-        return  result + "The Logician who's Innovative, Curious and Logical"
+        return  "The Logician who's Innovative, Curious and Logical"
     elif personality == "ENTJ":
-        return  result + "The Commander who's Bold, Imaginative and Strong-willed"
+        return  "The Commander who's Bold, Imaginative and Strong-willed"
     elif personality == "ENTP":
-        return result + "The Debater who's Smart, Curious and Intellectual"
+        return "The Debater who's Smart, Curious and Intellectual"
     elif personality == "INFJ":
-        return result + "The Advocate who's Quiet, Mystical and Idealist"
+        return "The Advocate who's Quiet, Mystical and Idealist"
     elif personality == "INFP":
-        return result + "The Mediator who's Poetic, Kind and Altruistic"
+        return "The Mediator who's Poetic, Kind and Altruistic"
     elif personality == "ENFJ":
-        return result + "The Protagonist who's Chrismatic, Inspiring and Natural-Leaders"
+        return "The Protagonist who's Chrismatic, Inspiring and Natural-Leaders"
     elif personality == "ENFP":
-        return result + "The Campaigner who's Enthusiastic, Creative and Sociable"
+        return "The Campaigner who's Enthusiastic, Creative and Sociable"
     elif personality == "ISTJ":
-        return result + "The Logistician who's Practical, Fact-Minded and Reliable"
+        return "The Logistician who's Practical, Fact-Minded and Reliable"
     elif personality == "ISFJ":
-        return result + "The Defender who's Protective, Warm and Caring"
+        return "The Defender who's Protective, Warm and Caring"
     elif personality == "ESTJ":
-        return result + "The Executive who's Organised, Punctual and Leader"
+        return "The Executive who's Organised, Punctual and Leader"
     elif personality == "ESFJ":
-        return result + "The Consul who's Caring, Social and Popular"
+        return "The Consul who's Caring, Social and Popular"
     elif personality == "ISTP":
-        return result + "The Virtuoso who's Bold, Practical and Experimental"
+        return "The Virtuoso who's Bold, Practical and Experimental"
     elif personality == "ISFP":
-        return result + "The Adventurer who's Artistic, Charming and Explorers"
+        return "The Adventurer who's Artistic, Charming and Explorers"
     elif personality == "ESTP":
-        return result + "The Entrepreneur who's Smart, Energetic and Perceptive"
+        return "The Entrepreneur who's Smart, Energetic and Perceptive"
     elif personality == "ESFP":
-        return result + "The Entertainer who's Spontaneous, Energetic and Enthusiastic"
+        return "The Entertainer who's Spontaneous, Energetic and Enthusiastic"
 
 
 def create_model(path):
@@ -134,8 +135,8 @@ def predict_text(txt_path, model_path):
         scores = model.predict(np.array(test_ids))
         type_idx =  np.argmax(scores)
         result = map_personality( per_types[type_idx] )
-        response["Type"] = type_idx
-        response["personality"] = result
+        response["results"]["type"] = per_types[type_idx]
+        response["results"]["personality"] = result
 
     except Exception as e:
         response["error"] = e
@@ -152,21 +153,24 @@ def store_response():
         Stores the json response, named with the text name extracted from the text path.
     '''
     try:
-        file_path = 'output/' + text_path.split("/")[-1].split(".")[0] + ".json"
+        file_path = results_path
         
         with open(file_path, 'w') as fp:
             json.dump(response, fp)
-    except:
-        print ("Error: can't store the file!")
+    except Exception as e:
+        print ("Error: can't store the file!", e)
 
  
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-p", "--path",  required=True)   
+    parser.add_argument("-p", "--path",  required=True)
+    parser.add_argument("-rp", "--resultsPath", required=True)
     parser.add_argument("-m", "--model", required=False, default="bert_base_model.h5")
+    
     args = parser.parse_args()
     text_path = args.path
+    results_path = args.resultsPath
 
     if not os.path.exists(args.path):
         response["error"] = "Invalid path for text"
