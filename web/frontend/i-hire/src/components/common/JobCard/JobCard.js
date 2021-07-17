@@ -1,59 +1,70 @@
 import React from 'react'
 import './jobcard.css'
-import { useSelector } from 'react-redux';
-import {PrimaryButton} from '@fluentui/react'
+import { useSelector, useDispatch } from 'react-redux';
+import {PrimaryButton, Stack} from '@fluentui/react'
 import { useHistory } from "react-router-dom";
+import { getTime } from '../../../utilities/Utilities';
+import { setCurrentJob } from '../../../redux'
 
 
-function JobCard() {
+function JobCard(props) {
 
+    const {job, img} = props;
     const curUser = useSelector(state => state.currentUser);
     const signedin = curUser.isSignedIn;
     const viewsStatsFlag = curUser.role === 'hr' || curUser.role === 'admin';
-    const enableApply = false;
     const history = useHistory();
-    const buttonStyles = {
-        label: {fontSize : 30, fontWeight: 'bold'}, 
-        root: {backgroundColor: '#F61471'}, 
-        rootHovered: {backgroundColor: '#33E3FF'}
-    }
+    const dispatch = useDispatch();
 
 
     const viewJob = () => {
-        console.log('hello');
+        dispatch(setCurrentJob(job));
         history.push('/view')
     }
 
     const applyJob = () => {
-        console.log('hello');
+        dispatch(setCurrentJob(job));
         history.push('/apply')
     }
 
+    const editJob = () => {
+        dispatch(setCurrentJob(job));
+        history.push('/edit')
+    }
+
     return (
-        <div className='job_card'>
-            <div className='job_header'>
-                <div className='job_text'>Job title</div>
-            </div>
-            <div className='job_body'>
-                <div className='job_text'>The Fluent UI Icons tool lets you search and browse all of Fluent UI's icons. You can also use it to create and maintain subsets of the icon font to use in your web apps, which are drop-in replacements for the default Fabric Core and Fluent UI React icon sets. In addition, the Fluent UI Icons tool is updated with new icons several times a month, whereas the default Fluent UI set is updated only occasionally. You can see detailed docs for the tool at https://aka.ms/fluentui-icons?help. (Note: This tool is only for use with font-based icons currently.)</div>
-            </div>
-        
-            <div className='job_footer'>
-                {
-                    signedin && viewsStatsFlag &&
-                    <PrimaryButton 
-                    onClick={viewJob} text = "View Stats" className='job_card_button' 
-                    styles={buttonStyles}
-                    />
-                }
-                {
-                    !viewsStatsFlag &&
-                    <PrimaryButton 
-                    onClick={applyJob} text = "Apply Job" className='job_card_button'
-                    disabled={enableApply || !signedin}  styles={buttonStyles}
-                    />
-                }
-            </div>
+        <div className="card">
+            <div className="thumb" style={{backgroundImage: `url(${img})`}}></div>
+            <article>
+                <h1>{job.title}</h1>
+                <p>{job.description}</p>
+                <Stack horizontal horizontalAlign= 'space-between'>
+                    <span className="card_span">{getTime(job.createdAt)}</span>
+                    {
+                        !viewsStatsFlag &&
+                        <PrimaryButton 
+                            onClick={applyJob} text="Apply"
+                            disabled={!signedin}
+                            styles={{label:{color:'white'}, root:{margin:'1em 0 0 0'}}}
+                        />
+                    }
+                    {
+                        viewsStatsFlag &&
+                        <Stack horizontal tokens={{childrenGap: 10}}>
+                            <PrimaryButton 
+                                onClick={editJob} text="Edit"
+                                disabled={!signedin}
+                                styles={{label:{color:'white'}, root:{margin:'1em 0 0 0'}}}
+                            />
+                            <PrimaryButton 
+                                onClick={viewJob} text="View"
+                                disabled={!signedin}
+                                styles={{label:{color:'white'}, root:{margin:'1em 0 0 0'}}}
+                            />
+                        </Stack>
+                    }
+                </Stack>
+            </article>
         </div>
     )
 }

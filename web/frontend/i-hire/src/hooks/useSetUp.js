@@ -8,10 +8,8 @@ function useSetUp() {
 
     useEffect( () => {
         const autoLogIn = async () => {
-            store.dispatch(setIsLoading());
             const token = window.localStorage.getItem("token");
             if(token === ""){
-                store.dispatch(resetIsLoading());
                 return;
             }
             try {
@@ -24,20 +22,20 @@ function useSetUp() {
                 });
                 if(!res.ok){
                     window.localStorage.setItem("token", "");
-                    store.dispatch(resetIsLoading());
                     return;
                 }
                 const data = await res.json();
                 console.log(data);
                 data.user.token = token;
                 store.dispatch(setCurrentUser(data.user));
-                store.dispatch(resetIsLoading())
             }
             catch (err) {
                 console.log(err);
             }
         }
+        store.dispatch(setIsLoading());
         autoLogIn();
+        store.dispatch(resetIsLoading())
     }, [])
 }
 

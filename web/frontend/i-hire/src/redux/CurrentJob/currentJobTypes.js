@@ -1,0 +1,2 @@
+export const SET_CURRENT_JOB = 'SET_CURRENT_JOB'
+export const RESET_CURRENT_JOB = 'RESET_CURRENT_JOB'
