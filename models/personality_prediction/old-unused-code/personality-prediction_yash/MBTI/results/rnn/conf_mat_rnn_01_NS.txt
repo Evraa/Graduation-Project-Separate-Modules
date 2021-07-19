@@ -1,0 +1,5 @@
+Total posts classified: 93
+Accuracy: 0.5913978494623656
+Confusion matrix: 
+[[11, 27],
+ [11, 44]]
