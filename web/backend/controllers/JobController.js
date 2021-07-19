@@ -22,7 +22,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 10;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    Job.find({enabled: true}, '-rankedApplicants').skip(skip).limit(PAGE_SIZE)
+    Job.find({enabled: true}).skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -56,7 +56,7 @@ const search = (req, res) => {
     Job.find({
         enabled: true,
         $or: [{title: RegExp(query, "i")}, {description: RegExp(query, "i")}],
-    }, '-rankedApplicants').skip(skip).limit(PAGE_SIZE)
+    }).skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -67,7 +67,7 @@ const search = (req, res) => {
 };
 
 const view = (req, res) => {
-    Job.findById(req.params.id, '-rankedApplicants')
+    Job.findById(req.params.id)
     .then(job => {
         if (job) {
             res.json(job);
@@ -79,6 +79,49 @@ const view = (req, res) => {
     .catch( err => {
         res.status(404).json({errors: [{"msg": "invalid job ID"}]});    
     });
+};
+
+const getAnswers = async (jobID, userID) => {
+    const job = await Job.findById(jobID);
+    const qSet = new Set();
+    for (const q of job.questions) {
+        if (q.ID) {
+            qSet.add(q.ID.toString());
+        }
+    }
+    const user = await User.findById(userID).select('answers');
+    const answers = new Map();
+    const allAnswers = user.answers;
+
+    if (allAnswers) {
+        for (const ans of allAnswers) {
+            if (qSet.has(ans.questionID.toString())) {
+                answers.set(ans.questionID, ans.answer);
+            }
+        }
+    }
+    return Object.fromEntries(answers);
+};
+
+const viewApplication = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+    {
+        res.status(400).json({errors: errors.array()});
+        return;
+    }
+    try {
+        const application = await Application.findOne({jobID: req.params.id, applicantID: req.user.id});
+        if (application ) {
+            res.json({applied: true, application});
+        } else {
+            const answers = await getAnswers(req.params.id, req.user.id);
+            res.json({applied: false, answers});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500);
+    }
 };
 
 const verifyJobID = () => {
@@ -179,27 +222,31 @@ const getRankedApplicants = async (req, res) => {
         return;
     }
     try {
-        const job = await Job.findById(req.params.id);
+        const job = await Job.findById(req.params.id, "rankedApplicants");
         const limit = 10;
         const page = req.query.page || 1;
         const skip = (page-1)*limit;
-        const numOfPages = Math.ceil(job.rankedApplicants.length/limit);
         if (job) {
-            const users = job.rankedApplicants.slice(skip, skip+limit);
-            const userData = [];
-            const appData = [];
-            for (const user of users) {
-                userData.push(User.findById(user.id, 'email name picture'));
-                appData.push(Application.find({applicantID: user.id, jobID: job.id}, '-jobID -applicantID'));
-            }
-            // send response after all data are gathered
-            Promise.allSettled([Promise.allSettled(userData), Promise.allSettled(appData)]).then(data => {
-                for (let i = 0; i < users.length; i++) {
-                    users[i].data = data[0].value[i].value;
-                    users[i].application = data[1].value[i].value;
+            if ( job.rankedApplicants.length ) {
+                const numOfPages = Math.ceil(job.rankedApplicants.length/limit);
+                const users = job.rankedApplicants.slice(skip, skip+limit);
+                const userData = [];
+                const appData = [];
+                for (const user of users) {
+                    userData.push(User.findById(user.id, 'email name picture'));
+                    appData.push(Application.find({applicantID: user.id, jobID: job.id}, '-jobID -applicantID'));
                 }
-                res.json({users, page, numOfPages});
-            }).catch(err => console.log(err));
+                // send response after all data are gathered
+                Promise.allSettled([Promise.allSettled(userData), Promise.allSettled(appData)]).then(data => {
+                    for (let i = 0; i < users.length; i++) {
+                        users[i].data = data[0].value[i].value;
+                        users[i].application = data[1].value[i].value;
+                    }
+                    res.json({users, page, numOfPages});
+                }).catch(err => console.log(err));
+            } else {
+                res.status(404).json({errors: [{"msg": "No ranked applicants"}]});
+            }
         } else {
             res.status(404).json({errors: [{"msg": "Job is not found"}]});
         }
@@ -333,6 +380,7 @@ module.exports = {
     verifySearch,
     search,
     view,
+    viewApplication,
     verifyJobID,
     getResumes,
     analyzeResumes,

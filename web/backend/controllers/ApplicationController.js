@@ -7,24 +7,32 @@ const MessageBroker = require('../middleware/MessageBroker');
 const fs = require('fs');
 const User = require('../models/User');
 
-const view = (req, res) => {
-    Application.findById(req.params.id)
-    .then(application => {
-        if (application ) {
-            if (!(req.user.role === "hr" || req.user.role === "admin" ||
-             (req.user.role === "applicant" && req.user.id === application.applicantID))) {
+const view = async (req, res) => {
+
+    try {
+        var application;
+        if (req.user.role == "hr") {
+            application = await Application.findById(req.params.id, '+analyzedVideo +analyzedPersonality');
+        } else if (req.user.role == "applicant") {
+            application = await Application.findById(req.params.id);
+            if (req.user.id != application.applicantID) {
                 res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
                 return;
             }
+        } else {
+            res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+            return;
+        }
+        if (application) {
             res.json(application);
         }
         else {
             res.status(404).json({errors: [{"msg": "Application is not found"}]});    
         }
-    })
-    .catch( err => {
+    } catch(err) {
+        console.log(err);
         res.status(404).json({errors: [{"msg": "Invalid application ID"}]});    
-    });
+    }
 };
 
 const viewAnswers = async (req, res) => {

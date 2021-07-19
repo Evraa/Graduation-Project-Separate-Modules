@@ -230,38 +230,6 @@ const view = async (req, res) => {
     res.json({user});
 };
 
-const viewAnswers = (req, res) => {
-    Job.findById(req.params.jobID).then(job => {
-        if (!job) {
-            res.status(404).json({errors: [{msg: "job is not found"}]});
-            return;
-        }
-        const qSet = new Set();
-        for (const q of job.questions) {
-            if (q.ID) {
-                qSet.add(q.ID.toString());
-            }
-        }
-        User.findById(req.user.id).select('+answers').then(user => {
-            const answers = new Map();
-            const allAnswers = user.answers;
-
-            if (allAnswers) {
-                for (const ans of allAnswers) {
-                    if (qSet.has(ans.questionID.toString())) {
-                        answers.set(ans.questionID, ans.answer);
-                    }
-                }
-            }
-            res.json(Object.fromEntries(answers));
-        }).catch(err => console.log(err));
-    }).catch(err => {
-        console.log(err);
-        // res.status(400).json({errors: [{msg: "Job ID is invalid"}]});
-        return;
-    });
-};
-
 const verifyUserID = () => {
     return param('id').isMongoId().withMessage("ID should be a valid user ID").bail()
     .custom(async (val) => {
@@ -310,7 +278,6 @@ module.exports = {
     verifyIndex,
     search,
     verifySearch,
-    viewAnswers,
     verifyUserID,
     view,
     promote,

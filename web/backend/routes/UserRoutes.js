@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const userController = require("../controllers/UserController");
 const { requireAuth } = require('../middleware/authenticate');
-const { authorizeApplicant, authorizeAdmin } = require("../middleware/authorize");
+const { authorizeAdmin } = require("../middleware/authorize");
 
 const router = Router();
 
@@ -18,6 +18,5 @@ router.get('/search', requireAuth, authorizeAdmin, userController.verifySearch()
 
 router.get('/:id', requireAuth, authorizeAdmin, userController.verifyUserID(), userController.view);
 
-router.get('/answers/:jobID', requireAuth, authorizeApplicant, userController.viewAnswers);
 
 module.exports = router;

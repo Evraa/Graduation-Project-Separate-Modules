@@ -22,10 +22,12 @@ const applicationSchema = new Schema({
         type: {url: String, name: String, date: Date}
     },
     analyzedVideo: {
-        type: Schema.Types.Mixed
+        type: Schema.Types.Mixed,
+        select: false
     },
     analyzedPersonality: {
-        type: Schema.Types.Mixed
+        type: Schema.Types.Mixed,
+        select: false
     }
 }, {timestamps: true});
 

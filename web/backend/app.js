@@ -34,3 +34,7 @@ app.use('/api/job', require('./routes/JobRoutes'));
 app.use('/api/user', require('./routes/UserRoutes'));
 app.use('/api/question', require('./routes/َQuestionRoutes'));
 app.use(require('./routes/ApplicationRoutes'));
+
+app.use((req, res) => {
+    res.status(404).json({msg:"The requested endpoint is not found"});
+});
