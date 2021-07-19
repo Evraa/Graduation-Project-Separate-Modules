@@ -14,9 +14,9 @@ function CustomRouter() {
         <Switch>
             <Route path ="/login"> <Login /> </Route>
             <Route path ="/create"> <AddJob /> </Route>
-            <Route path ="/edit"> <AddJob /> </Route>
-            <Route path ="/apply"> <ApplyJob /> </Route>
-            <Route path ="/view"> <ViewJob /> </Route>
+            <Route path ="/edit/:id"> <AddJob /> </Route>
+            <Route path ="/apply/:id"> <ApplyJob /> </Route>
+            <Route path ="/view/:id"> <ViewJob /> </Route>
             <Route path ="/signup"> <SignUp /> </Route>
             <Route path ="/profile"> <ViewProfile /> </Route>
             <Route path ="/edit_profile"> <EditProfile /> </Route>

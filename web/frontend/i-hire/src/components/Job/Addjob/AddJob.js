@@ -4,8 +4,9 @@ import { Stack, IconButton, TextField, CommandButton,
 import { Toggle } from '@fluentui/react/lib/Toggle';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory, useParams } from 'react-router-dom';
 import { baseUrl } from '../../../env';
-import { resetCurrentJob } from '../../../redux';
+import { resetCurrentJob, setIsLoading, resetIsLoading } from '../../../redux';
 import './addjob.css'
 
 function AddJob() {
@@ -31,6 +32,7 @@ function AddJob() {
 
     const [hideSearchDialog, sethideSearchDialog] = useState(true);
     const [searchQuestion, setsearchQuestion] = useState("");
+    const [errSearchQ, seterrSearchQ] = useState("");
 
     const [hideChooseDialog, sethideChooseDialog] = useState(true);
     const [chooseQuestion, setchooseQuestion] = useState({});
@@ -39,7 +41,6 @@ function AddJob() {
     const [questionSet, setquestionSet] = useState([]);
 
     const currentUser = useSelector(state => state.currentUser);
-    const currentJob = useSelector(state => state.currentJob);
 
     const token = currentUser.token;
 
@@ -47,6 +48,8 @@ function AddJob() {
 
     const dispatch = useDispatch();
 
+    const {id} = useParams();
+    const history = useHistory();
 
     const ChevronDown = { iconName: 'ChevronDown' };
     const ChevronUp = { iconName: 'ChevronUp' };
@@ -77,25 +80,44 @@ function AddJob() {
     };
 
     useEffect(()=>{
+        const fetchJob = async ()=>{
+            dispatch(setIsLoading());
+            try{
+                
+                const res = await fetch(baseUrl + "/job/"+id, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const currentJob = await res.json();
+                console.log(currentJob);
+                setjobTitle(currentJob.title);
+                setjobDescription(currentJob.description);
+                setreqVideo(currentJob.videoRequired);
+                const qs = currentJob.questions;
+                qs.map(val => {
+                    val.text = val.body; 
+                    val.key = val._id; 
+                    val.ID = val._id;
+                    delete val._id;
+                    return val;
+                })
+                setquestionSet(qs);
+            }
+            catch(err){
+                console.log(err);
+            }
+            dispatch(resetIsLoading());
+        }
         const path = window.location.pathname;
-        if(path === '/edit'){
-            setjobTitle(currentJob.title);
-            setjobDescription(currentJob.description);
-            setreqVideo(currentJob.videoRequired);
-            const qs = currentJob.questions;
-            qs.map(val => {
-                val.text = val.body; 
-                val.key = val._id; 
-                val.ID = val._id;
-                delete val._id;
-                return val;
-            })
-            setquestionSet(qs);
+        if(path === '/edit/'+id){
+            fetchJob();
         }
         return () => {
             dispatch(resetCurrentJob());
         }
-    },[dispatch]);
+    },[dispatch, id]);
 
     const addNewQuestion = async () => {
         try{
@@ -132,7 +154,10 @@ function AddJob() {
 
     const searchForQuestion = async () => {
         try{
-            const res = await fetch(baseUrl + "/question/?q="+searchQuestion, {
+            const url = new URL(baseUrl + "/question/search/");
+            const params = {q: searchQuestion};
+            url.search = new URLSearchParams(params).toString();
+            const res = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,9 +172,10 @@ function AddJob() {
                 }
                 setquestionsFromSearch(data2);
                 sethideChooseDialog(false);
+                seterrSearchQ('');
             }
             else {
-                console.log(data2["errors"][0]['msg']);
+                seterrSearchQ(data2["errors"][0]['msg']);
             }
         }
         catch(err) {
@@ -184,10 +210,16 @@ function AddJob() {
             videoRequired: reqVideo,
             questions: questions
         }
-        console.log(data);
+        const path = window.location.pathname;
+        let method = 'POST';
+        let url = baseUrl + "/job/";
+        if(path === '/edit/'+id){
+            url = url + id;
+            method = 'PUT';
+        }
         try{
-            const res = await fetch(baseUrl + "/job/", {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
@@ -197,7 +229,7 @@ function AddJob() {
             const data2 = await res.json();
             console.log(data2);
             if(res.ok){
-                
+                history.push('/');
             }
             else {
                 const errors = data2.errors;
@@ -247,7 +279,7 @@ function AddJob() {
         <div>
             <Stack vertical className='add_job_main'>
                 <div style={{fontSize:'50px', alignSelf: 'start', paddingBottom: '30px', fontWeight: 'bold', color: 'blue'}}>
-                    {path === '/edit' ? 'Edit Job': 'Create Job'}
+                    {path === ('/edit/'+id) ? 'Edit Job': 'Create Job'}
                 </div>
 
 
@@ -382,7 +414,7 @@ function AddJob() {
 
                 <div style={{padding: '40px', paddingRight:'15%', width: '100%', textAlign: 'right'}}>
                     <DefaultButton 
-                        text={path === '/edit' ? 'Edit Job': 'Create Job'}
+                        text={path === ('/edit/'+id) ? 'Edit Job': 'Create Job'}
                         iconProps={{iconName:"TaskSolid"}}
                         styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}} 
                         onClick={createJob}
@@ -419,7 +451,7 @@ function AddJob() {
 
             <Dialog
                 hidden={hideSearchDialog}
-                onDismiss={() => {sethideSearchDialog(true); setsearchQuestion('');}}
+                onDismiss={() => {sethideSearchDialog(true); setsearchQuestion(''); seterrSearchQ('')}}
                 dialogContentProps={{title: 'Search for a question' }}
                 modalProps={{isBlocking: false, dragOptions: dragOptions, styles:{ main: { width: 900 } }}}
             >
@@ -429,9 +461,12 @@ function AddJob() {
                     onChange={e => setsearchQuestion(e.target.value)} 
                     value={searchQuestion}
                 />
+                <div style={{color:'red'}}>
+                    {errSearchQ}
+                </div>
                 <DialogFooter>
                 <PrimaryButton onClick={searchForQuestion} text="Search" />
-                <DefaultButton onClick={() => {sethideSearchDialog(true); setsearchQuestion('');}} text="Cancel" />
+                <DefaultButton onClick={() => {sethideSearchDialog(true); setsearchQuestion(''); seterrSearchQ('')}} text="Cancel" />
                 </DialogFooter>
             </Dialog>
 
@@ -451,8 +486,8 @@ function AddJob() {
                     {errChooseQ}
                 </div>
                 <DialogFooter>
-                <PrimaryButton onClick={addExistingQuestion} text="Add" />
-                <DefaultButton onClick={() => {sethideChooseDialog(true); setchooseQuestion({}); seterrChooseQ('');}} text="Cancel" />
+                    <PrimaryButton onClick={addExistingQuestion} text="Add" />
+                    <DefaultButton onClick={() => {sethideChooseDialog(true); setchooseQuestion({}); seterrChooseQ('');}} text="Cancel" />
                 </DialogFooter>
             </Dialog>
         </div>
