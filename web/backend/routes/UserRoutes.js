@@ -18,5 +18,10 @@ router.get('/search', requireAuth, authorizeAdmin, userController.verifySearch()
 
 router.get('/:id', requireAuth, authorizeAdmin, userController.verifyUserID(), userController.view);
 
+router.post('/picture', requireAuth,
+    userController.uploadPicture.single('picture'), userController.storePicture);
+
+router.delete('/picture', requireAuth, userController.destroyPicture);
+
 
 module.exports = router;

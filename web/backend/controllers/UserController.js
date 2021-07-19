@@ -1,8 +1,10 @@
 const { body, validationResult, query, param } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const lo = require('lodash');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const Job = require('../models/Job');
-
 const User = require('../models/User');
 
 const createToken = (id) => {
@@ -266,6 +268,65 @@ const demote = async (req, res) => {
     res.json({msg: "User is demoted to applicant successfully"});
 };
 
+const PICTURE_FORMATS = ['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmb', '.gif'];
+const PICTURE_PATH = 'public/pictures';
+
+const uploadPicture = multer({
+    limits:{fileSize: '5mb'},
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        if(!PICTURE_FORMATS.includes(ext)) {
+            cb(null, false);
+            return;
+        }
+        cb(null, true);
+    },
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            fs.mkdirSync(PICTURE_PATH, {recursive: true});
+            cb(null, PICTURE_PATH);
+        },
+        filename: (req, file, cb) => {
+            const ext = path.extname(file.originalname);
+            cb(null, req.user.id + ext);
+        }
+    })
+});
+
+// if picture already exists, it updates it
+const storePicture = async (req, res) => {
+    
+    if (!req.file) {
+        res.status(404).json({errors: [{
+            msg: "Picture is not uploaded or in wrong format. format should be one of " + PICTURE_FORMATS
+        }]});
+        return;
+    }
+    const picture = req.file.path.substr(7);
+        
+    req.user.updateOne({picture}).then(_ => {
+        res.json({picture});
+    }).catch(error => {
+        res.status(400).json(error);
+    });
+};
+
+const destroyPicture = async (req, res) => {
+    const p =  'public/' + req.user.picture;
+    try {
+        if (!req.user.picture || !fs.existsSync(p)) {
+            res.status(404).json({errors: [{msg: "Picture is not found"}]});
+            return;
+        }
+        fs.unlinkSync(p);
+        await req.user.updateOne({picture: ""});
+        res.json({msg: "Picture is deleted successfully"});
+    } catch (error) {
+        console.log(error);
+        res.status(500).send();
+    }
+};
+
 module.exports = {
     verifySignup,
     signup,
@@ -281,5 +342,8 @@ module.exports = {
     verifyUserID,
     view,
     promote,
-    demote
+    demote,
+    uploadPicture,
+    storePicture,
+    destroyPicture
 };
