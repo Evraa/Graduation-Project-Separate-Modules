@@ -19,17 +19,17 @@ function JobCard(props) {
 
     const viewJob = () => {
         dispatch(setCurrentJob(job));
-        history.push('/view')
+        history.push('/view/'+job._id)
     }
 
     const applyJob = () => {
         dispatch(setCurrentJob(job));
-        history.push('/apply')
+        history.push('/apply/'+job._id)
     }
 
     const editJob = () => {
         dispatch(setCurrentJob(job));
-        history.push('/edit')
+        history.push('/edit/'+job._id)
     }
 
     return (
