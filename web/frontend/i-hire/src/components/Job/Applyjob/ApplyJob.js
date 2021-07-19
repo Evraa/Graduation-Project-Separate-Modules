@@ -37,6 +37,9 @@ function ApplyJob() {
     const [errVideo, seterrVideo] = useState('');
     const [errResume, seterrResume] = useState('');
 
+    const [videoFromPastApp, setvideoFromPastApp] = useState(false);
+    const [resumeFromPastApp, setresumeFromPastApp] = useState(false);
+
     const dragOptions = {
         moveMenuItemText: 'Move',
         closeMenuItemText: 'Close',
@@ -46,7 +49,7 @@ function ApplyJob() {
 
 
     const questionElement =  questions.map ( (question, index) =>
-        <div  className='apply_job_questions' >
+        <div  className='apply_job_questions' key={question.ID} >
             <TextField 
                 label={question.body}
                 type="text" 
@@ -113,36 +116,40 @@ function ApplyJob() {
             }
             for(let j = 0; j < qs.length; j += 1) qs[j].error = '';
             setquestions(qs);
-            const formData = new FormData();
-            formData.append('resume', resume);
-            const res2 = await fetch(baseUrl+'/application/' + id + '/resume', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                },
-                body: formData
-            });
-            const data2 = await res2.json();
-            console.log(data2);
-            if(!res2.ok){
-                seterrResume(data2.errors[0].msg);
-                return;
+            if(!resumeFromPastApp){
+                const formData = new FormData();
+                formData.append('resume', resume);
+                const res2 = await fetch(baseUrl+'/application/' + id + '/resume', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: formData
+                });
+                const data2 = await res2.json();
+                console.log(data2);
+                if(!res2.ok){
+                    seterrResume(data2.errors[0].msg);
+                    return;
+                }
             }
             seterrResume('');
-            const formData1 = new FormData();
-            formData1.append('video', video);
-            const res3 = await fetch(baseUrl+'/application/' + id + '/video', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                },
-                body: formData1
-            });
-            const data3 = await res3.json();
-            console.log(data3);
-            if(!res3.ok){
-                seterrVideo(data3.errors[0].msg);
-                return;
+            if(!videoFromPastApp){
+                const formData1 = new FormData();
+                formData1.append('video', video);
+                const res3 = await fetch(baseUrl+'/application/' + id + '/video', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: formData1
+                });
+                const data3 = await res3.json();
+                console.log(data3);
+                if(!res3.ok){
+                    seterrVideo(data3.errors[0].msg);
+                    return;
+                }
             }
             history.push('/')
         } 
@@ -154,30 +161,82 @@ function ApplyJob() {
 
 
     useEffect(() => {
+        let q = [];
         const fetchJob = async ()=>{
-            dispatch(setIsLoading());
             console.log(id);
-            const res = await fetch(baseUrl + "/job/"+id, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
+            try {
+                const res = await fetch(baseUrl + "/job/"+id, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if(!res.ok){
+                    throw new Error('Can not fetch job');
                 }
-            });
-            const currentJob = await res.json();
-            console.log(currentJob);
-            setjobTitle(currentJob.title);
-            setjobDescription(currentJob.description);
-            setreqVideo(currentJob.videoRequired);
-            const qs = currentJob.questions;
-            const q = qs.map(val => {
-                return {...val, 'answer': '', 'error': '', 'ID':val._id}
-            });
-            setquestions(q);
-            dispatch(resetIsLoading());
+                const currentJob = await res.json();
+                console.log(currentJob);
+                setjobTitle(currentJob.title);
+                setjobDescription(currentJob.description);
+                setreqVideo(currentJob.videoRequired);
+                const qs = currentJob.questions;
+                q = qs.map(val => {
+                    return {...val, 'answer': '', 'error': '', 'ID':val._id, '_id': val.ID}
+                });
+                setquestions(q);
+            } catch (error) {
+                console.log(error);
+            }
         }
 
-        fetchJob();
-    }, [id, dispatch])
+        const fetchApp = async ()=>{
+            try {
+                const res = await fetch(baseUrl + "/job/"+id+'/application', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if(!res.ok){
+                    throw new Error('Can not fetch previous application answers');
+                }
+                const app = await res.json();
+                console.log(app);
+                let ans = app;
+                if(app.applied){
+                    setvideo(app.application.video);
+                    setresume(app.application.resume);
+                    setvideoFromPastApp(true);
+                    setresumeFromPastApp(true);
+                    ans = app.application.answers;
+                }
+                else ans = app.answers;
+                const qs = q;
+                for(let i=0; app.applied && i < ans.length; i += 1){
+                    for(let j = 0; j < qs.length; j += 1){
+                        if(ans[i].questionID === qs[j].ID){
+                            qs[j].answer = ans[i].answer;
+                        }
+                    }
+                }
+                for(let j = 0; !app.applied && j < qs.length; j += 1){
+                    if(qs[j]._id in ans)
+                        qs[j].answer = ans[qs[j]._id];
+                }
+                setquestions(qs);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        const getData = async () => {
+            dispatch(setIsLoading());
+            await fetchJob();
+            fetchApp();
+            dispatch(resetIsLoading());
+        }
+        getData();
+
+    }, [id, dispatch, token])
 
 
     return (
@@ -251,12 +310,23 @@ function ApplyJob() {
                                 <div style={{alignSelf:'start'}}>
                                     Please Upload an introductory video to yourself
                                 </div>
-                                <DefaultButton 
-                                    text='Upload'
-                                    iconProps={{iconName: 'Up'}} 
-                                    onClick={() => setvideoDialog(false)}
-                                    styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}}
-                                />   
+
+                                <Stack horizontal>
+                                    <div style={{padding: '5px'}}>
+                                        {video.name}
+                                    </div>
+
+                                    <DefaultButton 
+                                        text='Upload'
+                                        iconProps={{iconName: 'Up'}} 
+                                        onClick={() => setvideoDialog(false)}
+                                        styles={{
+                                            root:{alignSelf:'end', borderColor: 'blue'}, 
+                                            label:{color:'blue', fontWeight:'bold'}
+                                        }}
+                                    />  
+                                </Stack>
+                                 
                                 
                             </Stack>
                             <div style={{color: 'red', textAlign:'start '}} >{errVideo}</div>
@@ -285,12 +355,21 @@ function ApplyJob() {
                                     Please Upload your CV
                                 </div>
 
-                                <DefaultButton 
-                                    text='Upload'
-                                    iconProps={{iconName: 'Up'}} 
-                                    onClick={() => setresumeDialog(false)}
-                                    styles={{root:{alignSelf:'end', borderColor: 'blue'}, label:{color:'blue', fontWeight:'bold'}}}
-                                />   
+                                <Stack horizontal>
+                                    <div style={{padding: '5px'}}>
+                                        {resume.name}
+                                    </div>
+
+                                    <DefaultButton 
+                                        text='Upload'
+                                        iconProps={{iconName: 'Up'}} 
+                                        onClick={() => setresumeDialog(false)}
+                                        styles={{
+                                            root:{alignSelf:'end', borderColor: 'blue'}, 
+                                            label:{color:'blue', fontWeight:'bold'}
+                                        }}
+                                    />  
+                                </Stack>
                                 
                             </Stack>
                             <div style={{color: 'red', textAlign:'start '}} >{errResume}</div>
@@ -339,7 +418,11 @@ function ApplyJob() {
                 dialogContentProps={{title: 'Choose a video' }}
                 modalProps={{isBlocking: true, dragOptions: dragOptions, styles:{ main: { width: 900 } }}}
             >
-                <input type="file" onChange={ e => setvideo(e.target.files[0])} className='upload_file'/>
+                <input 
+                    type="file" 
+                    onChange={ e => {setvideo(e.target.files[0]); setvideoFromPastApp(false);}} 
+                    className='upload_file'
+                />
                 <div style={{color:'blue'}}>{video.name}</div>
                 <DialogFooter>
                     <PrimaryButton onClick={ () => {setvideoDialog(true); setvideo({})} } text="cancel" />
@@ -354,7 +437,11 @@ function ApplyJob() {
                 dialogContentProps={{title: 'Choose a CV' }}
                 modalProps={{isBlocking: true, dragOptions: dragOptions, styles:{ main: { width: 900 } }}}
             >
-                <input type="file" onChange={ e => setresume(e.target.files[0])} className='upload_file'/>
+                <input 
+                    type="file" 
+                    onChange={ e => {setresume(e.target.files[0]); setresumeFromPastApp(false)}} 
+                    className='upload_file'
+                />
                 <div style={{color:'blue'}}>{resume.name}</div>
                 <DialogFooter>
                     <PrimaryButton onClick={ () => {setresumeDialog(true); setresume({})} } text="cancel" />

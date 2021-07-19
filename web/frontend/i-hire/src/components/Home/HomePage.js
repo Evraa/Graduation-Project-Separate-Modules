@@ -22,7 +22,7 @@ const HomePage = ()=> {
         for(let x = 0; x < Jobs.length; x += 3){
             const subcont = [];
             for(let j = x; j < x+3 && j < Jobs.length; j += 1){
-                subcont.push(<JobCard job={Jobs[j]} img={softWareimages[j%12]}/>)
+                subcont.push(<JobCard job={Jobs[j]} img={softWareimages[j%12]} key={Jobs[j]._id}/>)
             }
             content.push(
                 <Stack horizontal className='homecontainer' horizontalAlign='center' tokens={{childrenGap: 80}}>
