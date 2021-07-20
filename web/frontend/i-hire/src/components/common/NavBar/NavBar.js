@@ -26,7 +26,7 @@ function NavBar() {
                 <Link to="/">Home</Link>
                 {createFlag && <Link to="/create"> Create Job </Link>}
                 {!signedin && <Link to="/login">Sign in</Link>}
-                {signedin && <Link to="/profile">Profile</Link>}
+                {signedin && <Link to={"/profile/"+curUser._id}>Profile</Link>}
                 {signedin && <Link to="/home" onClick={logOut}>Log out</Link>}
             </div>
         </nav>

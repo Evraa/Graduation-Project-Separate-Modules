@@ -74,24 +74,25 @@ function Login() {
         <Stack vertical tokens={stackTokens} className='login_verticalstack'>
             <div>
                 <TextField 
-                label='Email'
-                type="text" 
-                required
-                className='login_label'
-                value={emailtxt}
-                onChange={(e) => setEmail(e.target.value)}
+                    label='Email'
+                    type="text" 
+                    required
+                    className='login_label'
+                    value={emailtxt}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <Label className='login_label' styles={{root:{textAlign:'end'}}}>{errors['email']}</Label>
             </div>
 
             <div>
                 <TextField 
-                label='Password'
-                type="password" 
-                required
-                className='login_label'
-                value={passwordtxt}
-                onChange={(e) => setPassword(e.target.value)}
+                    label='Password'
+                    type="password" 
+                    required
+                    className='login_label'
+                    canRevealPassword
+                    value={passwordtxt}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
                 <Label className='login_label' styles={{root:{textAlign:'end'}}}>{errors['password']}</Label>
             </div>

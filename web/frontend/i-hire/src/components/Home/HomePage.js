@@ -7,6 +7,7 @@ import { softWareimages } from '../../images/Images'
 import { baseUrl } from '../../env'
 import { useDispatch } from 'react-redux'
 import { setIsLoading, resetIsLoading } from '../../redux'
+import ViewApplication from '../Job/ViewApplication/ViewApplication'
 
 const HomePage = ()=> {
 
