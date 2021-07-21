@@ -54,13 +54,11 @@ def prepare_test_dataset_2(path = "data/Resume&Job_Description/Job_Description")
 
 def load_wv(path = "../model/word2vec.wordvectors", use_glove = False):
     # Load back with memory-mapping = read-only, shared across processes.
-    # if use_glove: return gensim.downloader.load('glove-wiki-gigaword-100')
-    if use_glove: return spacy.load('en_core_web_sm')
+    if use_glove: return gensim.downloader.load('glove-wiki-gigaword-100')
+    # if use_glove: return spacy.load('en_core_web_sm')
 
     if not utils.check_path(path): sys.exit(1)
     return KeyedVectors.load(path, mmap='r')
-
-
 
 
 

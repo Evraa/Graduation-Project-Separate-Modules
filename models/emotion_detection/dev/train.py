@@ -21,14 +21,15 @@ print (device)
 
 def model_init(num_classes,lr=0.001):
     '''
-        Loads ResNet18 model by torch.
+        Loads VGG16 model by torch.
 
         Modify the last fc layer to be suitable with our model.
 
         Defines and returns model, criterion, optimizer and learning rate scheduler.
     '''
-    #read the model RESNET18
-    model = models.resnet18(pretrained=True)
+    #read the model VGG16
+    # model = models.resnet18(pretrained=True)
+    model = models.vgg16(pretrained=True)
     num_features = model.fc.in_features
     # model.fc = nn.Linear(num_features, num_classes)
     model.fc = nn.Linear(num_features, num_features//4)
