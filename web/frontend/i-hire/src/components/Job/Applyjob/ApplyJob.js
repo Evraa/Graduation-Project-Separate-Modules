@@ -116,6 +116,7 @@ function ApplyJob() {
             }
             for(let j = 0; j < qs.length; j += 1) qs[j].error = '';
             setquestions(qs);
+
             if(!resumeFromPastApp){
                 const formData = new FormData();
                 formData.append('resume', resume);
@@ -134,7 +135,8 @@ function ApplyJob() {
                 }
             }
             seterrResume('');
-            if(!videoFromPastApp){
+
+            if(!videoFromPastApp && reqVideo){
                 const formData1 = new FormData();
                 formData1.append('video', video);
                 const res3 = await fetch(baseUrl+'/application/' + id + '/video', {
@@ -203,10 +205,13 @@ function ApplyJob() {
                 const app = await res.json();
                 console.log(app);
                 let ans = app;
+                console.log(reqVideo);
                 if(app.applied){
-                    setvideo(app.application.video);
+                    if(reqVideo){
+                        setvideo(app.application.video);
+                        setvideoFromPastApp(true);
+                    }
                     setresume(app.application.resume);
-                    setvideoFromPastApp(true);
                     setresumeFromPastApp(true);
                     ans = app.application.answers;
                 }
@@ -224,6 +229,7 @@ function ApplyJob() {
                         qs[j].answer = ans[qs[j]._id];
                 }
                 setquestions(qs);
+                console.log(ans);
             } catch (error) {
                 console.log(error);
             }
@@ -236,7 +242,7 @@ function ApplyJob() {
         }
         getData();
 
-    }, [id, dispatch, token])
+    }, [id, dispatch, token, reqVideo])
 
 
     return (
@@ -423,7 +429,7 @@ function ApplyJob() {
                     onChange={ e => {setvideo(e.target.files[0]); setvideoFromPastApp(false);}} 
                     className='upload_file'
                 />
-                <div style={{color:'blue'}}>{video.name}</div>
+                <div style={{color:'blue'}}>{video? video.name: ''}</div>
                 <DialogFooter>
                     <PrimaryButton onClick={ () => {setvideoDialog(true); setvideo({})} } text="cancel" />
                     <PrimaryButton onClick={() => setvideoDialog(true)} text="choose" />

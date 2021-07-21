@@ -100,6 +100,7 @@ function SignUp() {
                     type="password" 
                     required
                     className='login_label'
+                    canRevealPassword
                     value={passwordtxt}
                     onChange={(e) => setPassword(e.target.value)}
                 />
@@ -112,6 +113,7 @@ function SignUp() {
                     type="password" 
                     required
                     className='login_label'
+                    canRevealPassword
                     value={passwordConfirmation}
                     onChange={(e) => setPasswordConfirmation(e.target.value)}
                 />

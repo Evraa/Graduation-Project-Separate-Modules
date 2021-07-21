@@ -18,8 +18,8 @@ function CustomRouter() {
             <Route path ="/apply/:id"> <ApplyJob /> </Route>
             <Route path ="/view/:id"> <ViewJob /> </Route>
             <Route path ="/signup"> <SignUp /> </Route>
-            <Route path ="/profile"> <ViewProfile /> </Route>
-            <Route path ="/edit_profile"> <EditProfile /> </Route>
+            <Route path ="/profile/:id"> <ViewProfile /> </Route>
+            <Route path ="/edit_profile/:id"> <EditProfile /> </Route>
             <Route path ="/"> <HomePage /> </Route>
         </Switch>
     )
