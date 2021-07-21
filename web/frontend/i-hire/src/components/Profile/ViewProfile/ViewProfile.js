@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useHistory } from 'react-router-dom'
-import { baseUrl } from '../../../env'
+import { baseUrl, downloadUrl } from '../../../env'
 import { setIsLoading, resetIsLoading } from '../../../redux'
 import ViewApplication from '../../Job/ViewApplication/ViewApplication'
 
@@ -40,7 +40,7 @@ function ViewProfile() {
             })
             const data = await res.json();
             setuser(data.user);
-            setisLoggedIn(data.user._id === id);
+            setisLoggedIn(data.user._id === currentUser._id);
 
         }
 
@@ -72,7 +72,7 @@ function ViewProfile() {
         return () => {
             
         }
-    }, [dispatch, id, token])
+    }, [currentUser, dispatch, token])
 
     const editProfile = ()=>{
         history.push('/edit_profile/'+id);
@@ -141,7 +141,10 @@ function ViewProfile() {
             </div>
             <Stack horizontal tokens={{childrenGap:20}}>
                 <PrimaryButton text='View App' onClick={()=>viewApp(app.ID)}/>
-                <PrimaryButton text='Edit App' onClick={async ()=>editApp(app.ID)}/>
+                {
+                    isLoggedIn &&
+                    <PrimaryButton text='Edit App' onClick={async ()=>editApp(app.ID)}/>
+                }
             </Stack>
         </Stack>
     ): null;
@@ -152,19 +155,27 @@ function ViewProfile() {
             <div className='homepage_main' >
                 <div style={{borderBottom: '1px solid #e2e2e2', paddingBottom: '20px', width:'80%'}}>
                     <Stack horizontal horizontalAlign='space-between' >
-                        <div 
-                            style= {{color: 'blue', fontWeight: 'bold', fontSize: '40px',}}
-                        >
-                            {user.name}
-                        </div>
+                        <Stack vertical tokens={{childrenGap:20}}>
+                            <div 
+                                style= {{color: 'blue', fontWeight: 'bold', fontSize: '40px',}}
+                            >
+                                {user.name}
+                            </div>
+                            { 
+                                user.picture && 
+                                <img src={downloadUrl + user.picture} alt='profile' 
+                                    style={{width: '200px', height: '200px'}}
+                                />
+                            }
+                        </Stack>
                         {
                             isLoggedIn &&
-                            <div style={{paddingTop:'30px'}}>
+                            <Stack.Item align='end'>
                                 <DefaultButton 
                                     text='Edit Profile'
                                     onClick={editProfile}
                                 />
-                            </div>
+                            </Stack.Item>
                         }
                     </Stack>
                 </div>
