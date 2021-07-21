@@ -329,7 +329,7 @@ const destroyPicture = async (req, res) => {
             return;
         }
         fs.unlinkSync(p);
-        await req.user.updateOne({picture: ""});
+        await req.user.updateOne({$unset: {picture: 1}});
         res.json({msg: "Picture is deleted successfully"});
     } catch (error) {
         console.log(error);

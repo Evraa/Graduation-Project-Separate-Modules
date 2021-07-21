@@ -266,7 +266,7 @@ const destroyResume = (req, res) => {
     const jobID = req.params.fileName.split('_')[1].split('.')[0];
     Application.findOne({jobID, applicantID}).then(application => {
         if (application) {
-            application.updateOne({resume: {}}).catch(err => {
+            application.updateOne({$unset: {resume: 1}}).catch(err => {
                 console.log(err);
                 return;
             });
@@ -376,7 +376,7 @@ const destroyVideo = (req, res) => {
     const jobID = req.params.fileName.split('_')[1].split('.')[0];
     Application.findOne({jobID, applicantID}).then(application => {
         if (application) {
-            application.updateOne({video: {}}).catch(err => {
+            application.updateOne({$unset: {video: 1}}).catch(err => {
                 console.log(err);
                 return;
             });
