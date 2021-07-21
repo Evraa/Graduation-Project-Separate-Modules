@@ -31,7 +31,7 @@ function ViewProfile() {
     useEffect(() => {
         
         const fetchUser = async ()=> {
-            const res = await fetch(baseUrl+'/user/me', {
+            const res = await fetch(baseUrl+'/user/'+id, {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + token,
@@ -72,7 +72,7 @@ function ViewProfile() {
         return () => {
             
         }
-    }, [currentUser, dispatch, token])
+    }, [currentUser, dispatch, id, token])
 
     const editProfile = ()=>{
         history.push('/edit_profile/'+id);
@@ -97,10 +97,13 @@ function ViewProfile() {
             <div style={{color: 'gray', fontSize: '20px'}} >
                 {job.title}
             </div>
-            <Stack horizontal tokens={{childrenGap:20}}>
-                <PrimaryButton text='View Job' onClick={()=>viewJob(job._id)}/>
-                <PrimaryButton text='Edit Job' onClick={()=>editJob(job._id)}/>
-            </Stack>
+            {
+                currentUser.role === 'hr' &&
+                <Stack horizontal tokens={{childrenGap:20}}>
+                    <PrimaryButton text='View Job' onClick={()=>viewJob(job._id)}/>
+                    <PrimaryButton text='Edit Job' onClick={()=>editJob(job._id)}/>
+                </Stack>
+            }
         </Stack>
     );
 
