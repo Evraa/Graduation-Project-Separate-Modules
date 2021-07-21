@@ -11,7 +11,7 @@ const view = async (req, res) => {
 
     try {
         var application;
-        if (req.user.role == "hr") {
+        if (req.user.role == "hr" || req.user.role == "admin") {
             application = await Application.findById(req.params.id, '+analyzedVideo +analyzedPersonality');
         } else if (req.user.role == "applicant") {
             application = await Application.findById(req.params.id);
