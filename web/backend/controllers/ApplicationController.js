@@ -108,7 +108,11 @@ const store = async (req, res) => {
         return;
     }
     try {
-        const job = await Job.findById(req.params.jobID);
+        const job = await Job.findById(req.params.jobID, "+enabled");
+        if (!job.enabled) {
+            res.status(400).json({errors: [{"msg": "The job is not enabled"}]});
+            return;
+        }
         const questions = job.questions;
         const answers = req.body.answers;
         answersMap = new Map();
