@@ -33,8 +33,9 @@ def model_init(num_classes,lr=0.001):
     num_features = model.fc.in_features
     # model.fc = nn.Linear(num_features, num_classes)
     model.fc = nn.Linear(num_features, num_features//4)
+    model.act = nn.ReLU()
     model.fc_2 = nn.Linear( num_features//4, num_classes) #intermediate hidden layer for more classification acc.
-    
+    model.soft = nn.Softmax(dim=num_classes)
     model = model.to(device) #if cuda or not
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)

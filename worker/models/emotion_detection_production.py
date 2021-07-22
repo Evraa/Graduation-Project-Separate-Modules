@@ -1,19 +1,12 @@
 # Global imports
 import os, sys
-import torch
-from facenet_pytorch import MTCNN
-import torch.nn.functional as F
-from torchvision import transforms
-from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import argparse
 import cv2
 import math
 import json
-
-
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
+from keras.models import load_model
+from keras.preprocessing.image import img_to_array
 
 response = {
     "success": True,
@@ -22,14 +15,19 @@ response = {
     "results":[]
 }
 
-def load_model(path):
+
+
+
+def load_models(detection_model_path, emotion_model_path):
     '''
-        Loads model to process with.
+        Loads prediction and detection models to process with them.
     '''
 
     try:
-        model = torch.load(path, map_location=device)
-        return model
+        detection_model = cv2.CascadeClassifier(detection_model_path)
+        emotion_model = load_model(emotion_model_path, compile=False)
+        return detection_model, emotion_model
+
     except:
         response["error"] = "No models to test with!"
         response["success"] = False
@@ -37,87 +35,51 @@ def load_model(path):
         sys.exit(1)
 
 
-
-def predict_emotion(img, model):
-    """Predicting emotions"""
-    # Convert image to RGB
-    # Note: it will not be RGB cuz we already receiving grayscale images
-    #       but the Goddamn mtcnn model needs a 3 chanelled images :")
-    img = img.convert('RGB')
-
-    mtcnn = MTCNN(keep_all=True)
-    all_boxes = mtcnn.detect(img)
-
-    # Check if MTCNN detect good faces
-    # TODO: This part should detect THE best faces there. larger, most probable, centered .. etc.
-    good_boxes = []
-    for index, proba in enumerate(all_boxes[1]):
-        if(proba is not None and proba > 0.9):
-            good_boxes.append(all_boxes[0][index])
-    output = None
-    # Test/Evaluate
-    model.eval()
-    # Again, this should not be a for loop.
-    for boxes in good_boxes:
-        img_cropped = img.crop(boxes)
-
-        transform = transforms.Compose([transforms.Resize((224,224),interpolation=Image.NEAREST),transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-
-        img_tensor = transform(img_cropped)
-        img_tensor = img_tensor.to(device)
-
-        with torch.no_grad():
-            output = F.softmax(model(img_tensor.view(-1, 3, 224, 224))).squeeze()
-            
-        
-    return output
-
-
-
-def predict_frames(vid_path, splits, model_path):
+def process_frames(vid_path, splits, detection_model, emotion_model):
     '''
         Truncate video into frames.
 
         Decode each frame and add it to a json variable to be encoded and sent.
     '''
-    all_emotions = {0:"angry", 1:"disgust", 2:"fear", 3:"happy", 4:"sad", 5:"surprise", 6:"neutral"}
-    
-    # Opens the Video file
-    if not os.path.exists(vid_path):
-        response["error"] = "No video to process!"
-        response["success"] = False
-        store_response()
-        sys.exit(1)
+    all_emotions = {0:"angry", 1:"disgust", 2:"scared", 3:"happy", 4:"sad", 5:"surprise", 6:"neutral"}
+    EMOTIONS = ["angry" ,"disgust","scared", "happy", "sad", "surprised","neutral"]
 
-    # load model
-    model = load_model(model_path)
 
     #Read the first video
     try:
         cap= cv2.VideoCapture(vid_path)
-        i=1
+        K=1
         results = []
         while(cap.isOpened()):
 
             ret, frame = cap.read()
-            if ret == False or i%100 == 0:
+            if ret == False or K%1800 ==0:
                 break
-            
-            # img_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode()
-            # frame = Image.fromarray(np.uint8(frame)).convert('RGB')
 
-            frame = Image.fromarray(np.uint8(frame)).convert('L')
-            # img = Image.open(image_data)
-        
-            output = predict_emotion(frame, model)
-            frame_i = []
-            if output is not None:
-                for out in output:
-                    frame_i.append(out.item())
-                
+            # image = cv2.imread(path)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = detection_model.detectMultiScale(gray,scaleFactor=1.1,
+                            minNeighbors=5,minSize=(30,30),flags=cv2.CASCADE_SCALE_IMAGE)
+                            
+            if len(faces) > 0:
+                # We keep the face that has the largest area
+                face = sorted(faces, reverse=True,key=lambda x: (x[2] - x[0]) * (x[3] - x[1]))[0]
+                (fX, fY, fW, fH) = face
+                # Extract region of interest
+                roi = gray[fY:fY + fH, fX:fX + fW]
+                roi = cv2.resize(roi, (64, 64))
+                # Prepare it for the model
+                roi = roi.astype("float") / 255.0
+                roi = img_to_array(roi)
+                roi = np.expand_dims(roi, axis=0)
+                scores = emotion_model.predict(roi)
+                frame_i = []
+                for i in range(7):
+                    frame_i.append(scores[0][i])    
+
                 results.append(frame_i)
             
-            i+=1
+            K+=1
         
         cap.release()
         cv2.destroyAllWindows()
@@ -136,7 +98,7 @@ def predict_frames(vid_path, splits, model_path):
         sys.exit(1)
 
     # Report number of frames exist
-    response["no_frames"] = len(results)
+    response["no_frames"] = str(len(results))
     splits = int(splits)
     split_size = int(math.floor(len(results) / splits))
     for i in range(splits):
@@ -149,9 +111,9 @@ def predict_frames(vid_path, splits, model_path):
         result_mean = np.mean(results_split, axis=0)
         
         response["results"].append({})
-            
+        
         for key, emoition in all_emotions.items():
-            response["results"][i][emoition] = result_mean[key]
+            response["results"][i][emoition] = str(result_mean[key])
 
     return True
 
@@ -166,8 +128,9 @@ def store_response():
         
         with open(file_path, 'w') as fp:
             json.dump(response, fp)
-    except:
+    except Exception as e:
         print ("Error: can't store the file!")
+        print (e)
 
  
 if __name__ == '__main__':
@@ -175,10 +138,12 @@ if __name__ == '__main__':
 
     parser.add_argument("-p", "--path",  required=True)   
     parser.add_argument("-s", "--split", required=False, default=1)
-    parser.add_argument("-m", "--model", required=False, default="emotion_detect_model_90.h5")
+    parser.add_argument("-m", "--model", required=False, default="emotion_detect_model_120.hd5")
+    parser.add_argument("-ha", "--haar", required=False, default="haarcascade_frontalface_default.xml")
+    
     args = parser.parse_args()
     video_path = args.path
-
+    
     if int(args.split) <1 or int(args.split) >1000:
         response["error"] = "No. of splits must be bounded [1:1000]"
         response["success"] = False
@@ -192,12 +157,20 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if not os.path.exists(args.model):
-        response["error"] = "Invalid path for model"
+        response["error"] = "Invalid path for prediction model"
+        response["success"] = False
+        store_response()
+        sys.exit(1)
+    
+    if not os.path.exists(args.haar):
+        response["error"] = "Invalid path for detection model"
         response["success"] = False
         store_response()
         sys.exit(1)
 
-    state = predict_frames(args.path, args.split, args.model)
+    # load models
+    detection_model, emotion_model = load_models(args.haar, args.model)
+    state = process_frames(args.path, args.split, detection_model, emotion_model)
     response["success"] = state
     store_response()
     sys.exit(0)
