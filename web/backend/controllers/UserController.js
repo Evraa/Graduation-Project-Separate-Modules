@@ -178,7 +178,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 20;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    User.find({role: 'hr'}).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
+    User.find({$or: [{role: 'hr'}, {role: 'applicant'}]}).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
     .then(users => {
         res.json(users);
     })
@@ -223,13 +223,23 @@ const search = (req, res) => {
 };
 
 const view = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        res.status(400).json({errors: errors.array()});
-        return;
+    try {
+        const user = await User.findById(req.params.id);
+        if (user) {
+            if (req.user.role == "admin" || (req.user.role == "hr" && user.role == "applicant") ||
+            req.user.id == user.id) {
+                res.json({ user });
+            } else {
+                res.status(403).json({errors: [{"msg": "Unauthorized User"}]});
+            }
+        } else {
+            res.status(404).json({errors: [{"msg": "User is not found"}]});
+        }
+        
+    } catch (error) {
+        console.error(err);
+        res.status(400).json({errors: [{"msg": "Invalid user ID"}]});    
     }
-    const user = await User.findById(req.params.id);
-    res.json({user});
 };
 
 const verifyUserID = () => {
@@ -319,7 +329,7 @@ const destroyPicture = async (req, res) => {
             return;
         }
         fs.unlinkSync(p);
-        await req.user.updateOne({picture: ""});
+        await req.user.updateOne({$unset: {picture: 1}});
         res.json({msg: "Picture is deleted successfully"});
     } catch (error) {
         console.log(error);

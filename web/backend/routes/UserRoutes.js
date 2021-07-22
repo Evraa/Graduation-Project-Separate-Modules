@@ -16,7 +16,7 @@ router.patch('/:id/demote', requireAuth, authorizeAdmin, userController.verifyUs
 router.get('/', requireAuth, authorizeAdmin, userController.verifyIndex(), userController.index);
 router.get('/search', requireAuth, authorizeAdmin, userController.verifySearch(), userController.search);
 
-router.get('/:id', requireAuth, authorizeAdmin, userController.verifyUserID(), userController.view);
+router.get('/:id', requireAuth, userController.view);
 
 router.post('/picture', requireAuth,
     userController.uploadPicture.single('picture'), userController.storePicture);

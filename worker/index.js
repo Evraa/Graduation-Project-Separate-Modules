@@ -175,7 +175,7 @@ const process_resumes = async (jobID, jobDescription, token) => {
 
     try {
         fs.mkdirSync(RESUME_FOLDER, {recursive:true});
-        fs.mkdirSync('output');
+        fs.mkdirSync('output', {recursive: true});
         const res = await fetch(`${MASTER_URL}/api/job/${jobID}/resumes`, {
             headers: {
                 "Authorization": "Bearer " + token

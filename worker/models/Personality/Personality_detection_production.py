@@ -79,6 +79,53 @@ def create_model(path):
 # another preprocessing
 # !pip install tweet-preprocessor
 
+# import nltk
+
+# # Packages needed to be downloaded once
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('maxent_ne_chunker')
+# nltk.download('words')
+# nltk.download('stopwords')
+
+# # lists of words needed to be loaded once
+# stop_words = set(nltk.corpus.stopwords.words('english'))
+# stop_words = [w for w in stop_words if 't' not in w or 'n' not in w]
+# stop_words.append("between")
+# stop_words.append("into")
+
+# print(stop_words)
+# # porter = nltk.PorterStemmer()
+# # lancaster = nltk.LancasterStemmer()
+# # wnl = nltk.WordNetLemmatizer()
+
+# import string
+# import re
+
+# def clean_text(text):
+#     regex = re.compile('[%s]' % re.escape('|'))
+#     text = regex.sub(" ", text)
+#     words = str(text).split()
+#     words = [i.lower() + " " for i in words]
+#     words = [i for i in words if not "http" in i]
+#     words = " ".join(words)
+#     words = words.translate(words.maketrans('', '', string.punctuation))
+#     #remove digits
+#     words = re.sub(" \d+", " ", words)
+    
+#     words_tokens =  nltk.tokenize.word_tokenize(words)
+#     # remove the stop words
+#     filtered_tokens = [w for w in words_tokens if w not in stop_words]
+#     # remove redundent words
+#     filtered_tokens = list(dict.fromkeys(filtered_tokens))
+#     # remove single characters
+#     filtered_tokens = [w for w in filtered_tokens if len(w)>2]
+    
+#     #combine words
+#     words = " ".join(filtered_tokens)
+
+#     return words
+
 def clean_text(sentence):
     # remove hyperlinks, hashtags, smileys, emojies
     sentence = p.clean(sentence)
