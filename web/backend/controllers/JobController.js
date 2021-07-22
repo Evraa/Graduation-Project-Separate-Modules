@@ -187,7 +187,7 @@ const verifyRankedApplicants = () => {
     return [
         body('rankedApplicants').notEmpty().withMessage("rankedApplicants should be a non-empty array").bail()
         .isArray().withMessage("rankedApplicants should be an array").bail(),
-        body('rankedApplicants.*.id').isMongoId().withMessage("id should be a valid user ID").bail()
+        body('rankedApplicants.*.userID').isMongoId().withMessage("userID should be a valid user ID").bail()
         .custom(async (val) => {
             const user = await User.findById(val);
             if (user) {

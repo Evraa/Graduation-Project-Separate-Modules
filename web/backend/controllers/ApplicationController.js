@@ -5,6 +5,7 @@ const Application = require('../models/Application');
 const Job = require('../models/Job');
 const MessageBroker = require('../middleware/MessageBroker');
 const fs = require('fs');
+const lo = require('lodash');
 const User = require('../models/User');
 
 const view = async (req, res) => {
@@ -142,11 +143,13 @@ const store = async (req, res) => {
         if (application) {
             application.updateOne(data).then(updatedApp => {
                 res.json({updated: data});
-                MessageBroker.getInstance().then(mBroker => {
-                    mBroker.send(Buffer.from(JSON.stringify({
-                        type: 'answers', applicationID: application.id
-                    })));
-                }).catch(error => console.log(error));
+                if (data.answers && !lo.isEmpty(data.answers[0])) {
+                    MessageBroker.getInstance().then(mBroker => {
+                        mBroker.send(Buffer.from(JSON.stringify({
+                            type: 'answers', applicationID: application.id
+                        })));
+                    }).catch(error => console.log(error));
+                }
             }).catch(error => {
                 console.log(error);
             });
@@ -163,11 +166,13 @@ const store = async (req, res) => {
                         console.log(err);
                     }
                 });
-                MessageBroker.getInstance().then(mBroker => {
-                    mBroker.send(Buffer.from(JSON.stringify({
-                        type: 'answers', applicationID: application.id
-                    })));
-                }).catch(error => console.log(error));
+                if (data.answers && !lo.isEmpty(data.answers[0])) {
+                    MessageBroker.getInstance().then(mBroker => {
+                        mBroker.send(Buffer.from(JSON.stringify({
+                            type: 'answers', applicationID: application.id
+                        })));
+                    }).catch(error => console.log(error));
+                }
             }).catch(error => {
                 console.log(error);
             });
