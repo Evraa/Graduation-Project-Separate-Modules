@@ -128,7 +128,7 @@ function ViewApplication(props) {
         >
             <Stack vertical tokens={{childrenGap: 50}} >
                 <div style={titleStyle}>{Job.title}</div>
-                <Stack horizontal horizontalAlign='space-between'>
+                <Stack horizontal horizontalAlign='space-between' tokens={{childrenGap:40}}>
                     <div style={itemStyle}> jobDescription </div>
                     <div style={itemContentStyle} > {Job.description} </div>
                 </Stack>
