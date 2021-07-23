@@ -50,7 +50,7 @@ function AdminPanel(props) {
             const url = new URL(baseUrl + "/user/search/");
             const params = {q: searchText};
             url.search = new URLSearchParams(params).toString();
-            const res = await fetch(url+'/user/', {
+            const res = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + token,
