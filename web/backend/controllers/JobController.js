@@ -241,7 +241,7 @@ const getRankedApplicants = async (req, res) => {
                 const appData = [];
                 for (const user of users) {
                     userData.push(User.findById(user.userID, 'email name picture'));
-                    appData.push(Application.find({applicantID: user.userID, jobID: job.id}, '-jobID -applicantID'));
+                    appData.push(Application.find({applicantID: user.userID, jobID: job.id}, '-jobID -applicantID +analyzedVideo +analyzedPersonality'));
                 }
                 // send response after all data are gathered
                 Promise.allSettled([Promise.allSettled(userData), Promise.allSettled(appData)]).then(data => {
