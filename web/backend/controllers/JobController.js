@@ -144,15 +144,15 @@ const getResumes = async (req, res) => {
     try {
         const resumes = await Application.find({
             jobID: req.params.id, resume: {$exists: true}
-        }, "resume applicantID -_id").exec();
+        }, "resume applicantID").exec();
         if (resumes && resumes.length) {
             res.json(resumes);
         } else {
             res.status(400).json({msg: "No resumes for this job"});
         }
     } catch (error) {
-        console.log(error);
-        res.status(500);
+        console.error(error);
+        res.status(500).send();
     }
 };
 
@@ -164,13 +164,20 @@ const analyzeResumes = async (req, res) => {
     }
     const job = await Job.findById(req.params.id);
     if (job) {
-        const mBroker = await MessageBroker.getInstance();
-        mBroker.send(Buffer.from(JSON.stringify({
-            type: "resumes",
-            jobID: job._id,
-            jobDescription: job.description
-        })));
-        res.json({msg: "Resumes is being processed"});
+        const count = await Application.count({
+            jobID: req.params.id, resume: {$exists: true}
+        });
+        if (count) {
+            const mBroker = await MessageBroker.getInstance();
+            mBroker.send(Buffer.from(JSON.stringify({
+                type: "resumes",
+                jobID: job._id,
+                jobDescription: job.description
+            })));
+            res.json({msg: "Resumes is being processed"});
+        } else  {
+            res.status(400).json({msg: "No resumes for this job"});
+        }
     } else {
         res.status(404).json({errors: [{"msg": "Job is not found"}]});
     }
@@ -180,7 +187,7 @@ const verifyRankedApplicants = () => {
     return [
         body('rankedApplicants').notEmpty().withMessage("rankedApplicants should be a non-empty array").bail()
         .isArray().withMessage("rankedApplicants should be an array").bail(),
-        body('rankedApplicants.*.id').isMongoId().withMessage("id should be a valid user ID").bail()
+        body('rankedApplicants.*.userID').isMongoId().withMessage("userID should be a valid user ID").bail()
         .custom(async (val) => {
             const user = await User.findById(val);
             if (user) {
@@ -209,8 +216,8 @@ const storeRankedApplicants = async (req, res) => {
             res.status(404).json({errors: [{"msg": "Job is not found"}]});
         }
     } catch (error) {
-        console.log(error);
-        res.status(500);
+        console.error(error);
+        res.status(500).send();
     }
     
 };

@@ -116,7 +116,9 @@ const login = async () => {
 };
 
 const process_video = async (url, token) => {
-    
+    const CODE_PATH = "models/video/emotion_detection_production.py";
+    const MODEL_PATH = "models/video/model/emotion_detect_model_120.hd5";
+    const HAAR_PATH = "models/video/model/haarcascade_frontalface_default.xml";
     try {
         // if the video doesn't exist on this worker, request it from master
         if (!fs.existsSync(url)) {
@@ -135,7 +137,7 @@ const process_video = async (url, token) => {
                 return false;
             }
         }
-        execSync(`python models/emotion_detection_production.py -p ${url} -m models/emotion_detect_model_90.h5`);
+        execSync(`python ${CODE_PATH} -p=${url} -m=${MODEL_PATH} -ha=${HAAR_PATH}`);
         const fileBaseName = path.basename(url).split('.')[0];
         const outFileName = 'output/' + fileBaseName + '.json';
         const data =  JSON.parse(fs.readFileSync(outFileName));
@@ -175,7 +177,7 @@ const process_resumes = async (jobID, jobDescription, token) => {
 
     try {
         fs.mkdirSync(RESUME_FOLDER, {recursive:true});
-        fs.mkdirSync('output');
+        fs.mkdirSync('output', {recursive: true});
         const res = await fetch(`${MASTER_URL}/api/job/${jobID}/resumes`, {
             headers: {
                 "Authorization": "Bearer " + token

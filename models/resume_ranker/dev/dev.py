@@ -3,6 +3,8 @@ from gensim.models import Word2Vec
 import os
 import time
 import pandas as pd
+import gensim.downloader
+
 # local imports
 from parser_utils import get_parsed_data, extract_text_from_pdf
 from utils import fetch_data, evaluate_pereformance
@@ -87,23 +89,30 @@ def train_wv(iteratable = False):
     # sims = model.wv.most_similar('computer', topn=10)  # get other similar words
     # print (sims)
 
+
 def accumulate_training(iteratable=False):
     # load data generator itertable
     if iteratable: 
         resumes = Resumes('data/pdf')
     else:
-        resumes = fetch_data("data/data_pdf_2.csv")
+        resumes = fetch_data("data/data_pdf_combined.csv")
 
     print ("Data loaded")
 
     # load the model
-    model = Word2Vec.load("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.model")
-
+    # model = Word2Vec.load("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.model")
+    model = gensim.downloader.load('glove-wiki-gigaword-100')
+    print ("Model loaded")
+    model.build_vocab(resumes, update=True)
+    print ("model built")
+    
+    start_time = time.time()
     #trian on new data
-    model.train(resumes, epochs=150, total_examples=len(resumes))
-
+    
+    model.train(resumes, epochs=1, total_examples=len(resumes))
+    print (f'Execution time: {round(time.time() - start_time, 2)} s')
     #save new model
-    model.save("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.model")
+    model.save("../model/pre_trained.model")
 
 
     print ("Training Completed")
@@ -111,7 +120,8 @@ def accumulate_training(iteratable=False):
     # Store just the words + their trained embeddings.
     word_vectors = model.wv
     if not os.path.exists('../model'): os.mkdir('../model')
-    word_vectors.save("../model/word2vec_vs_100_ep_150_sg_alpha_0.01_2.wordvectors")
+    word_vectors.save("../model/pre_trained.wordvectors")
 
 
-train_wv()
+accumulate_training()
+# print(list(gensim.downloader.info()['models'].keys()))

@@ -1,4 +1,5 @@
-data
+data/*
 models
 results
 output
+test_2.py

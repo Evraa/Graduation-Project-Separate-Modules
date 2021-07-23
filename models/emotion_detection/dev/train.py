@@ -21,19 +21,21 @@ print (device)
 
 def model_init(num_classes,lr=0.001):
     '''
-        Loads ResNet18 model by torch.
+        Loads VGG16 model by torch.
 
         Modify the last fc layer to be suitable with our model.
 
         Defines and returns model, criterion, optimizer and learning rate scheduler.
     '''
-    #read the model RESNET18
-    model = models.resnet18(pretrained=True)
+    #read the model VGG16
+    # model = models.resnet18(pretrained=True)
+    model = models.vgg16(pretrained=True)
     num_features = model.fc.in_features
     # model.fc = nn.Linear(num_features, num_classes)
     model.fc = nn.Linear(num_features, num_features//4)
+    model.act = nn.ReLU()
     model.fc_2 = nn.Linear( num_features//4, num_classes) #intermediate hidden layer for more classification acc.
-    
+    model.soft = nn.Softmax(dim=num_classes)
     model = model.to(device) #if cuda or not
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
