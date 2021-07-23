@@ -19,7 +19,7 @@ function ViewJob() {
     const history = useHistory();
 
 
-    const [items, setitems] = useState();
+    const [items, setitems] = useState([]);
 
     const [userDialogBox, setuserDialogBox] = useState({});
     const [hideDialog, sethideDialog] = useState(true);
@@ -67,6 +67,7 @@ function ViewJob() {
 
     const sortAppliedAt = () => {
         const newItems = [...viewedItems];
+        console.log(items);
         
         newItems.sort((a,b) => {
             const aDate = new Date(a.appliedAt);
@@ -83,7 +84,7 @@ function ViewJob() {
 
     const sortCVs = () => {
         const newItems = [...viewedItems];
-        console.log(newItems);
+        console.log(items);
         
         newItems.sort((a,b) => {
             return columns[3].isSortedDescending? b.cvRank - a.cvRank: a.cvRank - b.cvRank;
@@ -132,7 +133,7 @@ function ViewJob() {
             sortAscendingAriaLabel: 'Sorted A to Z',
             sortDescendingAriaLabel: 'Sorted Z to A',
             isPadded: true,
-            onColumnClick: sortAppliedAt,
+            onColumnClick: () => sortAppliedAt(),
             onRender: (item) => {
                 const date = new Date(item.appliedAt);
                 const dateStr = date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear();
@@ -155,7 +156,7 @@ function ViewJob() {
             sortDescendingAriaLabel: 'Sorted Z to A',
             isSorted: true,
             isSortedDescending: true,
-            onColumnClick: sortCVs,
+            onColumnClick: () => sortCVs(),
             data: 'number',
             isPadded: true,
         },
@@ -260,7 +261,7 @@ function ViewJob() {
                     await sleep(2000);
                     console.log(data);
                     itr += 1;
-                }while(data.errors && itr < 50);
+                }while(data.errors && itr < 1);
 
                 console.log(data);
                 const users = data.users;
@@ -276,12 +277,13 @@ function ViewJob() {
                     us.analyzedPersonality = users[i].application[0].analyzedPersonality;
                     us.analyzedVideo = users[i].application[0].analyzedVideo;
                     us.id = users[i].data._id;
-                    us.appid = users[i].application[0].applicantID;
+                    us.appid = users[i].application[0]._id;
                     itm.usr = us;
                     stitems.push(itm);
                 }
                 setitems([...stitems]);
                 setviewedItems([...stitems]);
+                await sleep(100);
                 
             } catch (error) {
                 console.log(error);
