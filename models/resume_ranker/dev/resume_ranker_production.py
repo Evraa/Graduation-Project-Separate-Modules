@@ -132,7 +132,7 @@ if __name__ == '__main__':
     # Store results
     for name, scores in sorted_score_dict.items():
 
-        response["results"].append({'id': name, 'scores': scores})
+        response["results"].append({'userID': name, 'scores': scores})
     
     store_response()
     sys.exit(0)

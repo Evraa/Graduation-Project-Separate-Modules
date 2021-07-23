@@ -30,7 +30,7 @@ const jobSchema = new Schema({
     },
     rankedApplicants: {
         type:[{
-            id: {type: Schema.Types.ObjectId, ref: "User"},
+            userID: {type: Schema.Types.ObjectId, ref: "User"},
             scores: [Number],
             data: Schema.Types.Mixed,
             application: Schema.Types.Mixed

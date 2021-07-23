@@ -12,7 +12,7 @@ function JobCard(props) {
     const {job, img} = props;
     const curUser = useSelector(state => state.currentUser);
     const signedin = curUser.isSignedIn;
-    const viewsStatsFlag = curUser.role === 'hr' || curUser.role === 'admin';
+    const viewsStatsFlag = curUser.role === 'hr';
     const history = useHistory();
     const dispatch = useDispatch();
 
@@ -41,7 +41,7 @@ function JobCard(props) {
                 <Stack horizontal horizontalAlign= 'space-between'>
                     <span className="card_span">{getTime(job.createdAt)}</span>
                     {
-                        !viewsStatsFlag &&
+                        !viewsStatsFlag && curUser.role === 'applicant' &&
                         <PrimaryButton 
                             onClick={applyJob} text="Apply"
                             disabled={!signedin}

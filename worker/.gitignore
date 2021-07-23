@@ -107,7 +107,7 @@ uploads
 
 # ignore models
 *.h5
-models/resume_ranker_model/model
+models/resume_ranker_model/model/*
 
 #ignore output directory
 output
