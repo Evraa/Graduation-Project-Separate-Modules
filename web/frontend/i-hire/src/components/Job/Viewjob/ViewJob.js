@@ -1,128 +1,31 @@
 import { CommandBarButton, DetailsList, DetailsListLayoutMode, Dialog, DialogFooter, mergeStyleSets, PrimaryButton, SelectionMode, Stack, TextField, TooltipHost } from '@fluentui/react';
 import React, {useEffect} from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { resetCurrentJob } from '../../../redux';
-import { downloadUrl } from '../../../env'
+import { downloadUrl, baseUrl } from '../../../env'
 import { useState } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
+import ViewApplication from '../ViewApplication/ViewApplication';
 
 
 function ViewJob() {
 
     const dispatch = useDispatch();
 
+    const {id} = useParams();
+    const currentUser = useSelector(state => state.currentUser);
+    const token = currentUser.token;
 
-    const items = [
-        {
-            key: '1',
-            name: 'kareem',
-            appliedAt: '2021-07-23T00:10:38.791+00:00',
-            userPic: 'pictures/60f45a37c3deb2095ce85372.jpg',
-            cvRank: 1,
-            usr:{
-                analyzedPersonality: {
-                    personality: "The Defender who's Protective, Warm and Caring"
-                },
-                analyzedVideo:{
-                    results:[{
-                        angry: "0.11447591",
-                        disgust: "0.13745777",
-                        scared: "0.14146577",
-                        happy: "0.28353685",
-                        sad: "0.07573782",
-                        surprise: "0.078595325",
-                        neutral: "0.16873056"
-                    }]
-                },
-                id: "60f45a37c3deb2095ce85372"
-            }
-        },
-        {
-            key: '2',
-            name: 'Evram',
-            appliedAt: '2021-07-23T09:53:14.410+00:00',
-            userPic: 'pictures/60f9d733779ecc23a64d40ac.jpg',
-            cvRank: 2,
-            usr:{}
-        },
-        {
-            key: '3',
-            name: 'Omar',
-            appliedAt: '2021-07-22T23:48:53.716+00:00',
-            userPic: 'pictures/60f9dbf9779ecc23a64d40b0.jpg',
-            cvRank: 3,
-            usr:{}
-        },
-        {
-            key: '4',
-            name: 'Sayed',
-            appliedAt: '2021-07-22T23:48:53.716+00:00',
-            userPic: 'pictures/60f9e0d9779ecc23a64d40b1.jpg',
-            cvRank: 4,
-            usr:{}
-        },
-        {
-            key: '5',
-            name: 'Muhammed',
-            appliedAt: '2021-07-20T00:10:38.791+00:00',
-            userPic: 'pictures/60f9dab9779ecc23a64d40ae.jpg',
-            cvRank: 5,
-            usr:{}
-        },
-        {
-            key: '6',
-            name: 'Khaled',
-            appliedAt: '2021-07-19T00:10:38.791+00:00',
-            userPic: 'pictures/60f9d8f7779ecc23a64d40ad.jpg',
-            cvRank: 6,
-            usr:{}
-        },
-        {
-            key: '7',
-            name: 'Arthur',
-            appliedAt: '2021-07-18T00:10:38.791+00:00',
-            userPic: 'pictures/60f9db8f779ecc23a64d40af.jpg',
-            cvRank: 7,
-            usr:{}
-        },
-        {
-            key: '8',
-            name: 'Osama',
-            appliedAt: '2021-07-17T00:10:38.791+00:00',
-            userPic: 'pictures/60f1a612f76cec6506d42f57.jpg',
-            cvRank: 8,
-            usr:{}
-        },
-        {
-            key: '9',
-            name: 'Haytham',
-            appliedAt: '2021-07-16T00:10:38.791+00:00',
-            userPic: 'pictures/60f1a612f76cec6506d42f57.jpg',
-            cvRank: 9,
-            usr:{}
-        },
-        {
-            key: '10',
-            name: 'Alaa',
-            appliedAt: '2021-07-15T00:10:38.791+00:00',
-            userPic: 'pictures/60f1a612f76cec6506d42f57.jpg',
-            cvRank: 10,
-            usr:{}
-        },
-        {
-            key: '11',
-            name: 'Alice',
-            appliedAt: '2021-07-22T23:51:37.213+00:00',
-            userPic: 'pictures/60f1a612f76cec6506d42f57.jpg',
-            cvRank: 11,
-            usr:{}
-        },
-        
-    ]
+    const history = useHistory();
 
-    const [userDialogBox, setuserDialogBox] = useState(items[0].usr);
-    const [hideDialog, sethideDialog] = useState(true)
+
+    const [items, setitems] = useState();
+
+    const [userDialogBox, setuserDialogBox] = useState({});
+    const [hideDialog, sethideDialog] = useState(true);
+    const [hideAppDailog, sethideAppDailog] = useState(true);
     
-    const [viewedItems, setviewedItems] = useState([...items]);
+    const [viewedItems, setviewedItems] = useState([]);
   
     const classNames = mergeStyleSets({
         fileIconHeaderIcon: {
@@ -180,6 +83,7 @@ function ViewJob() {
 
     const sortCVs = () => {
         const newItems = [...viewedItems];
+        console.log(newItems);
         
         newItems.sort((a,b) => {
             return columns[3].isSortedDescending? b.cvRank - a.cvRank: a.cvRank - b.cvRank;
@@ -275,12 +179,12 @@ function ViewJob() {
                         {
                           key: 'viewprofile',
                           name: 'View Profile',
-                          onClick: () => {setuserDialogBox(item.usr)}
+                          onClick: () => {setuserDialogBox(item.usr); history.push('/profile/' + item.usr.id)}
                         },
                         {
                           key: 'viewapp',
                           name: 'View Application',
-                          onClick: () => {setuserDialogBox(item.usr)}
+                          onClick: () => {setuserDialogBox(item.usr); sethideAppDailog(false);}
                         },
                         {
                           key: 'viewstats',
@@ -330,10 +234,64 @@ function ViewJob() {
     useEffect(()=>{
         console.log(window.location.pathname);
         console.log(window.location.href);
+        const sleep = (ms) => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        const fetchData = async() => {
+            try {
+                const res1 = await fetch('http://localhost:3002/api/job/'+id+'/analyzeResumes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const data1 = await res1.json();
+                var data;
+                var itr = 0;
+                do{
+                    const res = await fetch('http://localhost:3002/api/job/'+id+'/rankedApplicants', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    data = await res.json();
+                    await sleep(2000);
+                    console.log(data);
+                    itr += 1;
+                }while(data.errors && itr < 50);
+
+                console.log(data);
+                const users = data.users;
+                const stitems = [];
+                for(var i = 0; i < users.length; i += 1){
+                    const itm = {};
+                    const us = {};
+                    itm.key = users[i].data._id;
+                    itm.name = users[i].data.name;
+                    itm.userPic = users[i].data.picture;
+                    itm.cvRank = i+1;
+                    itm.appliedAt = users[i].application[0].createdAt;
+                    us.analyzedPersonality = users[i].application[0].analyzedPersonality;
+                    us.analyzedVideo = users[i].application[0].analyzedVideo;
+                    us.id = users[i].data._id;
+                    us.appid = users[i].application[0].applicantID;
+                    itm.usr = us;
+                    stitems.push(itm);
+                }
+                setitems([...stitems]);
+                setviewedItems([...stitems]);
+                
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        fetchData();
         return () => {
             dispatch(resetCurrentJob());
         }
-    },[dispatch]);
+    },[dispatch, id, token]);
 
     return (
         <div className='homepage_main' >
@@ -392,6 +350,10 @@ function ViewJob() {
                 </DialogFooter>
 
             </Dialog>
+            <ViewApplication 
+                appID={userDialogBox.appid} hideDialog={hideAppDailog} 
+                sethideDialog={sethideAppDailog} 
+            />
 
         </div>
     )
