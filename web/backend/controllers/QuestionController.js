@@ -19,7 +19,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 20;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    Question.find().skip(skip).limit(PAGE_SIZE)
+    Question.find().sort('-updatedAt').skip(skip).limit(PAGE_SIZE)
     .then(questions => {
         res.json(questions);
     })
@@ -50,7 +50,7 @@ const search = (req, res) => {
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
     const query = req.query.q;
-    Question.find({body: RegExp(query, "i")}).skip(skip).limit(PAGE_SIZE)
+    Question.find({body: RegExp(query, "i")}).sort('-updatedAt').skip(skip).limit(PAGE_SIZE)
     .then(questions => {
         res.json(questions);
     })

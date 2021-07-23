@@ -178,7 +178,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 20;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    User.find({$or: [{role: 'hr'}, {role: 'applicant'}]}).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
+    User.find({$or: [{role: 'hr'}, {role: 'applicant'}]}).select("-applications -jobs").sort('-createdAt').skip(skip).limit(PAGE_SIZE)
     .then(users => {
         res.json(users);
     })
@@ -212,7 +212,7 @@ const search = (req, res) => {
     const query = req.query.q;
     User.find({
         $or: [{email: RegExp(query, "i")}, {name: RegExp(query, "i")}],
-    }).select("-applications -jobs").skip(skip).limit(PAGE_SIZE)
+    }).select("-applications -jobs").sort('-createdAt').skip(skip).limit(PAGE_SIZE)
     .then(users => {
         res.json(users);
     })

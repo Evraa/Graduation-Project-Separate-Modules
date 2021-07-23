@@ -22,7 +22,7 @@ const index = (req, res) => {
     const PAGE_SIZE = 10;
     const page = req.query.page;
     const skip = (page-1)*PAGE_SIZE;
-    Job.find({enabled: true}).skip(skip).limit(PAGE_SIZE)
+    Job.find({enabled: true}).sort('-createdAt').skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -56,7 +56,7 @@ const search = (req, res) => {
     Job.find({
         enabled: true,
         $or: [{title: RegExp(query, "i")}, {description: RegExp(query, "i")}],
-    }).skip(skip).limit(PAGE_SIZE)
+    }).sort('-createdAt').skip(skip).limit(PAGE_SIZE)
     .then(jobs => {
         res.json(jobs);
     })
@@ -240,8 +240,8 @@ const getRankedApplicants = async (req, res) => {
                 const userData = [];
                 const appData = [];
                 for (const user of users) {
-                    userData.push(User.findById(user.id, 'email name picture'));
-                    appData.push(Application.find({applicantID: user.id, jobID: job.id}, '-jobID -applicantID'));
+                    userData.push(User.findById(user.userID, 'email name picture'));
+                    appData.push(Application.find({applicantID: user.userID, jobID: job.id}, '-jobID -applicantID'));
                 }
                 // send response after all data are gathered
                 Promise.allSettled([Promise.allSettled(userData), Promise.allSettled(appData)]).then(data => {
