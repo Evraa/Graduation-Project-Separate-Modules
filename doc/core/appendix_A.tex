@@ -1,7 +1,72 @@
-\section{Appendix A: Development Platforms and Tools}
-This appendix explains used tools, platforms, and hardware kits. Any ready-made module should be mentioned and discussed in this appendix. The appendix is divided into two main sections; one for the hardware and the other is for software. Within each section, you could add as much subsections as needed, according to the number of tools and platforms that you use in your project.
+\newpage
+\section*{Appendix A: Development Platforms and Tools}
+% This appendix explains used tools, platforms, and hardware kits. Any ready-made module should be mentioned and discussed in this appendix. The appendix is divided into two main sections; one for the hardware and the other is for software. Within each section, you could add as much subsections as needed, according to the number of tools and platforms that you use in your project.
 
-In this space, before the first section, write an introductory paragraph to the appendix
+% In this space, before the first section, write an introductory paragraph to the appendix
 
-\subsection{Hardware Platforms}
-\subsection{Software Tools}
+We will discuss in this appendix the software and hardware requirements, tools, packages and frameworks used in the development process.
+
+\subsection*{Hardware Platforms}
+
+For development and testing, We used 3 laptops serving as servers and clients most of them have these specs:
+\begin{itemize}
+    \item Operating system: Linux (Ubuntu 18.04)
+    \item vCPUs: 1
+    \item RAM: 8 GB
+    \item Disk: 1T (HDD)
+\end{itemize}
+
+
+In production and deployment (Future work), we will use 5 servers serving as servers with these specs:
+\begin{itemize}
+    \item Operating system: Linux
+    \item vCPUs: 2
+    \item RAM: 8 GB
+    \item Disk: 200MB
+\end{itemize}
+\subsection*{Software Tools}
+The softwares consists of Application, Models, Distributed system.
+\subsubsection{Application}
+
+For the application (Front-end), we used:
+\begin{itemize}
+    \item \textbf{React: }JavaScript library developed by Facebook. It simplifies creating interactive UIs with great functionalities and less effort.
+    \item \textbf{Redux: }A state container for JavaScript apps. It simplifies state management in JavaScript application and manipulates the application state in a centralized way. it provides a predictable, debuggable and flexible state container.
+    \item  \textbf{fluent UI: }JavaScript library developed by Microsoft. it is a collection of UX frameworks for creating fancy applications. It enhances application user interface, design and interaction behavior.
+\end{itemize}
+
+For the back-end we used:
+
+\begin{itemize}
+    \item \textbf{Node.js:} A javascript runtime to run javascript on the server, it's used to build network applications
+    \item \textbf{Express.js:} A Node.js framework that is used to ease the process of building web applications and APIs
+\end{itemize}
+
+\subsubsection{Models}
+
+For the Models, we used:
+\begin{itemize}
+    \item \textbf{Google colab: }A service from google where anyone can write and execute python code on it through a browser, used mainly for machine learning and data analysis. It provides notebooks where you can write your code without any setup. It provide free access to computing resources to be used for training models.
+    \item \textbf{NumPy: }It’s a package/library used for linear algebra applications,statistics and mathematics. It’s used mainly in dealing with multi-dimensional matrices efficiently.
+    \item \textbf{Pandas: }It’s a package/library used for data science built on top of NumPy, most widely used for data manipulation that makes data cleansing,normalization, merging,....etc easier.
+    \item \textbf{TensorFlow: }It’s a framework developed by Google, used in machine learning designed to let researchers push the state-of-the-art and developers build applications easier by implementing the most common function used in machine learning just as back-propagation and most common activation function.
+    \item \textbf{Pytorch: }It’s a framework similar to TensorFlow but developed by Facebook.
+    
+    \item \textbf{Matplotlib: }It’s a package/library used for plotting graphs and doing some visualization easier.
+    
+    \item \textbf{Transformers: }It’s a package/library used in machine learning. It’s widely used to load models in an easy and efficient way.
+    
+    \item \textbf{nltk: }It’s a package/library built in python used in natural language processing, for easily pre-processing text.
+    
+    \item \textbf{gensim: }It’s a package/library used in natural language processing. It’s widely used to deal with text and sequence models.
+    
+    
+\end{itemize}
+
+
+\subsubsection{Distributed system}
+For the Distributed system, we used: 
+
+\begin{itemize}
+    \item \textbf{RabbitMQ: }It’s a framework that’s most commonly used in distributed systems to make message queues and handle them in an efficient and easy way. It's used to send messages across message queues, load balance the sent messages across consumers (workers), and make sure that the messages are sent and consumed or re-queue them and send them again in case of failure.
+\end{itemize}
