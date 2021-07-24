@@ -1,10 +1,69 @@
-\section{Conclusions and Future Work}
-This chapter should summarize the whole project, it features and limitation. Moreover, you should give directions for future work
+% \section{Conclusions and Future Work}
+% This chapter should summarize the whole project, it features and limitation. Moreover, you should give directions for future work
 
-In this space, before the first section, write an introductory paragraph for the chapter
+% In this space, before the first section, write an introductory paragraph for the chapter
+
+Our project is made for hiring, which combines artificial intelligence with distributed systems, which consists of many modules that can be tweaked and improved, in addition, new features can be added to support hiring, which makes the future work endless, but we will list the most important ones.\newline
+In this chapter, we will discuss the future work, faced challenges,  gained experience and the conclusion.
+
+\section{Faced Challenges}
+We faced a lot of challenges in our project which can be categorized into: 
+\begin{itemize}
+    \item Dataset.
+    \item Problems with personality analysis.
+    \item Problems with Models.
+\end{itemize}
+
+\textbf{Dataset: }concerning the personality analysis based on text, we had a hard time finding a large good dataset, the only dataset available is relatively small compared to large applications like Facebook and Twitter.  Which consists of 10K record, And not only it’s small but it’s very very biased dataset, which deeply affects the model performance, this dataset was for (MBTI) psychological  model, we found a dataset for (big5) psychological  model, but it was even smaller, consists of 3K record. There was a dataset of 3M record for Facebook “MyPersonality” application which was taken down for legal issues.\cite{facebook_takedown_dataset} \newline
+ 
+The dataset is the bottleneck of our model, due to insufficient and unavailable data, the model achieves its converges and was nearly close to the state of the art \cite{state_of_the_art_pers_text}.\newline 
+
+\textbf{Problems with personality analysis: }we find out that personality analysis is a very hard problem to deal with not technically but psychologically, because the problem is so subjective even among experts, so it’s hard to judge and tell the right personality. And through searching we found a lot that advice to stay away from this problem because it’s not worth devoting time into. \newline
+
+\textbf{Problems with Models: }we had a hard time trying different models, tuning them and choosing between them, not only that but also the training process, we faced problems in it due to insufficient computation resources, and had to deploy our model through Amazon web services (AWS) for training and this happens for video emotion detection. 
+
+We also had a very hard time trying to implement CV ranker, as there was no ground truth for the problem, and it was unsupervised learning with unlabeled CVs, which made us try to come up with different techniques to make a good ranker.\newline
 
 
-\subsection{Faced Challenges}
-\subsection{Gained Ecperience}
-\subsection{Conclusions}
-\subsection{Future Work}
+\section{Gained Experience}
+
+We gained a lot of experience, some of them are as follows:
+\begin{itemize}
+    \item How to use different  platforms such as "Google colab" and "Amazon cloud".
+    \item Learned various and complex artificial intelligence architectures and techniques.
+    \item Different metrics, methods and heuristics in unsupervised learning.
+    \item Different load balancing and fault tolerant techniques.
+    \item How to distribute workload among workers efficiently.
+    \item Dealing with different datasets, small and large, biased and unbiased.
+    \item learning and dealing with React, Redux framework and Fluent UI.
+    \item Building fancy responsive UI designs.
+    \item Researching and reading so many research papers which gives us a good overview in the fields we are targeting along with the state of the art methods and techniques.
+    \item Implementing our own techniques and knowing its bottlenecks and why its performing like that.
+\end{itemize}
+
+
+\section{Conclusions}
+
+To conclude our work, concerning the models part, for video emotion detection, it works very well with a time nearly equal to the time of watching the video to fully analyze it, for resume ranker, it works well and can classify the wanted and unwanted CVs and also rank the wanted CVs correctly, for personality detection based on text, the model is nearly achieving state of the art models. Concerning the distributed system, it distributes work among workers with a load balancing technique and has a fault tolerant system. Concerning our UI, it's fancy and responsive, this covers the advantages of each module.
+
+Regarding the disadvantages, the personality detection based on text model, is not achieving a good validation accuracy.
+
+\section{Future Work}
+
+
+Hiring Process requires a lot of resources and time, and the problem can be tackled and issued by different forms, in this manner, our future work will be as follows:
+\begin{itemize}
+    \item \textbf{Regarding the models: }we will make them do online learning, where they automatically learn from the data given to them and become better through time. This target the problem of accuracy.
+    
+    \item \textbf{Regarding the distributed system: } we will switch the system from centralised to decentralised system. And this target the problem of robustness, security and fault tolerant.
+    
+    \item \textbf{Add new models: }  To do more analysis on applicants for better understanding, we will add audio analysis, this is useful in fields like languages and translation, where you only need to analyze the voice.
+    
+    
+    \item \textbf{Add more features: }  we will add a chat-bot to focus on qualified candidates, add live/recorded interviews and HR community where HRs can consult each other and come up with the best decisions.
+\end{itemize}
+
+
+
+
+

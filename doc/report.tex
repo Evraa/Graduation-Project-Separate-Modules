@@ -3,6 +3,10 @@
 \usepackage{cite}
 \usepackage[hidelinks]{hyperref}
 \usepackage{graphicx}
+\usepackage{arabtex}
+\usepackage{utf8}
+\usepackage[table]{xcolor}
+\graphicspath{ {images/} }
 \usepackage{amsfonts}
 \usepackage{mathtools}
 \usepackage{caption}
@@ -11,8 +15,49 @@
 \usepackage[top=0.6in,bottom=0.6in,right=1in,left=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{titling}
-
+\usepackage{amsmath}
+\usepackage{tocloft}
 \usepackage{array}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[inline]{enumitem}
+\usepackage[export]{adjustbox}
+\usepackage{fancyhdr}
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
 
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
@@ -23,7 +68,14 @@
 
 \rhead{I Hire Graduation Project | 2021}
 \lhead{\thesection}
-\rfoot{\thepage}
+\cfoot{\thepage}
+\chead{}
+\lfoot{}
+\rfoot{}
+
+% \lhead{}
+% \rhead{}
+% \cfoot{\thepage}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
@@ -31,30 +83,34 @@
 
 
 \begin{document}
+\newcommand{\listequationsname}{List of Equations}
+\newlistof{myequations}{equ}{\listequationsname}
+\newcommand{\myequations}[1]{%
+\addcontentsline{equ}{myequations}{\protect\numberline{\theequation}$\;\;\;$#1}\par}
 \begin{titlepage}
   
 \begin{center}
   \begin{minipage}{2.5cm}
     \begin{center}
-      \includegraphics[width=2.3cm,height=2.5cm]{images/logo/uni_logo.jpg}
+      \includegraphics[width=2.3cm,height=3cm]{logo/uni_logo.png}
     \end{center}
   \end{minipage}\hfill
   \begin{minipage}{10cm}
     \begin{center}
-      {\bfseries\large Cairo University - Faculty of Engineering}\\[0.1cm]
+      {\bfseries\large Faculty of Engineering Cairo University }\\[0.1cm]
       {\bfseries\large Computer Engineering Department}\\[0.1cm]
     \end{center}
   \end{minipage}\hfill
   \begin{minipage}{2.5cm}
     \begin{center}
-        \includegraphics[width=2.5cm,height=2cm]{images/logo/fac_logo.png}
+        \includegraphics[width=2.8cm,height=2.8cm]{logo/fac_logo.png}
     \end{center}
   \end{minipage}
   
   \vspace{1cm}
   \begin{minipage}{6cm}
     \begin{center}
-        \includegraphics[width=5.1cm,height=5cm]{images/logo/i_hire.png}
+        \includegraphics[width=5.1cm,height=5cm]{logo/i_hire.png}
     \end{center}
   \end{minipage}
 
@@ -75,7 +131,7 @@
   \setlength{\tabcolsep}{1.5cm}
   \begin{tabular}{M{5cm}M{5cm}}
   \large \textsc{Evram Youssef} & \large \textsc{Omar Ahmed}\\[0.1cm]
-  \large \href{evramyousef@gmail.com}{evramyousef@gmail.com} & \large \href{omar.ahmed983@eng-st.cu.edu.eg}{omar.ahmed983@eng-st.cu.edu.eg}\\[0.1cm]
+  \large evramyousef@gmail.com & \large omar.ahmed983@eng-st.cu.edu.eg\\[0.1cm]
   \end{tabular}
 
   \vspace{0.9cm}
@@ -83,13 +139,13 @@
   \setlength{\tabcolsep}{1.5cm}
   \begin{tabular}{M{5cm}M{5cm}}
   \large \textsc{Kareem Osama} & \large \textsc{Muhammad Sayed}\\[0.1cm]
-  \large \href{kareem.elsayed98@eng-st.cu.edu.eg}{kareem.elsayed98@eng-st.cu.edu.eg} & \large \href{muhammad.mahmoud98@eng-st.cu.edu.eg}{muhammad.mahmoud98@eng-st.cu.edu.eg}\\[0.1cm]
+  \large kareem.elsayed98@eng-st.cu.edu.eg & \large muhammad.mahmoud98@eng-st.cu.edu.eg\\[0.2cm]
     
   \end{tabular}
   \vspace{1cm}
 
   {\LARGE \textit{Supervised by}}\\
-  \LARGE \textsc{Prof. Magda Fayek}\\[0.5cm]
+  \LARGE \textsc{Prof. Magda Fayek }\\[0.5cm]
 
   {\large {Date: \today}}
   \vspace{0.5cm}
@@ -106,56 +162,200 @@
 
 \thispagestyle{empty}
 
-% general guidelines
+
 % abstract
-% abstract in arabic
-% ack
-\tableofcontents
+\chapter*{Abstract}
+Interviewers and applicants are the most friendly rivals that exist in our business environment, each one of them is trying to find his/her best fit \textit{-whether it was a company or an applicant-}. Interviewers spend most of their time looking through resumes to draft them for next interview, and then sit down with them asking about behavioral questions for the most of the interview; just to make sure that they are not a threat to their company and their skills are suitable for the job description.
+
+Almost all of the major companies dedicate a large profit for the purpose of finding good candidates and new employees, by hiring more human resources employees. Nevertheless, even if an applicant nailed the interview and got the job, it does not mean that he/she owns it completely, also it does not make him/her the perfect fit for the position.\\
+
+From there we saw an opportunity, which is exploiting the data held by interviewers and create an intelligent system that is capable of ranking interviewees and describe their behaviours with an automated way that only requires a job description inserted by the interviewer and a list of questions that is normally asked during behavioural tests. Taking these different types of data we were able to build an intelligent system that is operating in an acceptable time -relative to normal interview time- by using the design architecture of distributed systems, balancing the work load among different machines.
+\thispagestyle{empty} 
+
+% \newpage
+% \begin{arabtext}
+% {\huge
+% المُلَخَّص
+% }\vspace{20pt}
+% % \input{arabic-abstract.txt}
+% \end{arabtext}
+% {\color{white} \tiny \section*{~} \addcontentsline{toc}{section}{\<المُلَخص>}
+% abstract arabic
+% %Abstract in arabic
+% \thispagestyle{empty} 
+\newpage
+\setcode{utf8}
+\begin{arabtext}
+{\huge
+المُلَخَّص
+}\vspace{20pt}
+\input{arabic-abstract.txt}
+\end{arabtext}
+\thispagestyle{empty}
+
+\newpage
+
+\section*{Acknowledgement}
+% \addcontentsline{toc}{section}{Acknowledgement}
+We would like to thank our supervisor Prof. Magda Fayek for her incredible support, advice, mentorship and patience. Thanks to God first, then our supervisor's useful critics that helped us achieve this work.
+We would like to thank “Y. Mehta, S. Fatehi, A. Kazameini, C. Stachl, E. Cambria and S. Eetemadi” \cite{yash_personal} from university of London for sharing their awesome research work.\newline
+Last but not least, we would like to thank our families and friends for being support through this journey.
+
+\thispagestyle{empty}
+\newpage
+
+
+\section*{Contacts}
+\label{sec:contacts}
+% \addcontentsline{toc}{section}{\nameref{sec:contacts}}
+\subsubsection*{Team Members}
+\rowcolors{2}{gray!25}{white}
+\begin{tabular}{|l | l | l|}
+\rowcolor{gray!50}
+    \hline
+    Name & Email & Phone Number\\\hline\hline
+    Evram Youssef & evramyousef@gmail.com  & 01207526604 \\\hline
+    Omar Ahmed & omar.ahmed983@eng-st.cu.edu.eg &  01030017422 \\\hline
+    Kareem Osama & kareem.elsayed98@eng-st.cu.edu.eg & 01158498673 \\\hline
+    Muhammad Sayed & muhammad.mahmoud98@eng-st.cu.edu.eg & 01097701734 \\\hline
+\end{tabular}
+
+
+\subsubsection*{Supervisor}
+\rowcolors{2}{gray!25}{white}
+\begin{tabular}{|l | l | l|}
+\rowcolor{gray!50}
+    \hline
+    Name & Email & Phone Number\\\hline\hline
+    Prof. Magda Fayek & magdafayek@ieee.org & 01001589411 \\\hline
+\end{tabular}
+
+\thispagestyle{empty}
+\newpage
+
+
+
+\pagenumbering{roman}
+
+
+
+\tableofcontents 
+\newpage
+
+
 \listoffigures
+\newpage
+
 \listoftables
-% list of abbreviations
-% list of symbols
-% contacts
+\newpage
+
+
+\listofmyequations
+\newpage
+
+\section*{List of Abbreviations}
+
+\begin{tabular}{ ccc }
+
+AI & Artificial Intelligence  \\
+API & Application Program Interface\\
+ANN & Artificial Neural Network\\
+
+BERT & Bidirectional Encoder Representations from Transformers \\
+
+CAP & Consistency,Availability and Partition tolerance \\
+CEIC & Census and Economic Information Center\\
+CONV & Convolution\\
+CNN & Convolutional Neural Network\\
+CV & Curriculum Vitae\\
+
+Fer2013 & Facial Expression Recognition 2013\\
+
+HTTP & Hypertext Transfer Protocol\\
+
+LSTM & Long Short-Term Memory\\
+
+MBTI & Myers Briggs Type Indicator\\
+MLP &  Multi-layer Perceptrons  \\
+MQ & Message Queue\\
+
+OCEAN & Openness, Conscientiousness, Extroversion, Agreeableness, Neuroticism \\
+
+
+RESTful API & Representational State Transfer API\\
+ReLU & Rectified linear activation\\
+RMS & Root Mean Square\\
+RNN & Recurrent Neural Network\\
+
+SWOT & Strengths, Weaknesses, Opportunities and Threats\\
+
+TF-IDF & Term Frequency-Inverse Document Frequency\\
+UI & User Interface\\
+UX & User eXperience \\
+VGG & Visual Geometry Group \\
+
+\end{tabular}
+
+\newpage
+
 \clearpage
+\vspace*{\fill}
+\begin{center}
+\begin{minipage}{.45\textwidth}
+This page is left intentionally empty
+\end{minipage}
+\end{center}
+\vfill % equivalent to \vspace{\fill}
+\thispagestyle{empty}
+\clearpage
+
+
 
 \pagenumbering{arabic}
 
-\part{Introduction}
+\chapter{Introduction}
+\label{ch:1}
 \input{core/introduction}
 
-
-
-\part{Market Survey}
+\chapter{Market Survey}
+\label{ch:2}
 \input{core/market_survey}
 
-\part{Literature Survey}
+\chapter{Literature Survey}
+\label{ch:3}
 \input{core/literature_survey}
 
-\part{System Design and Architecture}
+\chapter{System Design and Architecture}
+\label{ch:4}
 \input{core/system_design_and_architecture}
 
-\part{System Testing and Verification}
+\chapter{System Testing and Verification}
+\label{ch:5}
 \input{core/system_testing_and_verification}
 
-\part{Conclusions and Future Work}
+\chapter{Conclusions and Future Work}
+\label{ch:6}
 \input{core/conclusions_and_future_work}
 
-%\part{Reference}
-%\input{core/reference}
 
-\part{Appendix A: Development Platforms and Tools}
+\lhead{Reference}
+\input{core/reference}
+\addcontentsline{toc}{chapter}{Reference}
+\newpage
+
+\lhead{Appendix}
 \input{core/appendix_A}
+\addcontentsline{toc}{chapter}{Appendix}
 
-\part{Appendix B: Use Cases}
+
 \input{core/appendix_B}
 
-\part{Appendix C: User Guide}
 \input{core/appendix_C}
 
-\part{Appendix D: Code Documentation}
 \input{core/appendix_D}
 
-\part{Appendix E: Feasibility Study}
 \input{core/appendix_E}
+
+
 
 \end{document}

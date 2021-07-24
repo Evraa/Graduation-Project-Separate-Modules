@@ -1,21 +1,812 @@
-\section{System Design and Architecture}
-This chapter represents the main body of your project. It should describe the project in full details. This chapter should answer the questions: “what has been done?” and “how it has been done?”. As such, the steps you went through to realize the project should be highlighted and properly discussed. Your scientific approaches and methodologies should be clarified. The discussion should adopt a logical flow starting from the whole block diagram, to coarse modules, and finally to fine modules. While writing this chapter, try to give as much details as possible, such that an interested reader could easily replicate your work and improve it.
+% \section{System Design and Architecture}
+% This chapter represents the main body of your project. It should describe the project in full details. This chapter should answer the questions: “what has been done?” and “how it has been done?”. As such, the steps you went through to realize the project should be highlighted and properly discussed. Your scientific approaches and methodologies should be clarified. The discussion should adopt a logical flow starting from the whole block diagram, to coarse modules, and finally to fine modules. While writing this chapter, try to give as much details as possible, such that an interested reader could easily replicate your work and improve it.
 
-In this space, before the first section, write an introductory paragraph on how you design and build your project
+% In this space, before the first section, write an introductory paragraph on how you design and build your project
+
+In this chapter we introduce a very thorough description of our project as a whole, starting from abstract point of view and then zooming-in into every single module that composes the system.
 
 
-\subsection{Overview and Assumptions}In this section, introduce how you design you system and develop its underlying architecture. Any employed assumptions should be clearly enumerated and justified.
+To conquer our defined set of problems at section \ref{sec:Project Objectives and Problem Definition} we needed a system that is able to process different functions with different resources in a reasonable and acceptable time. We implemented a web application, that has two main functionalities: \textbf{1- Assembling} data from users (applicants), \textbf{2- Analyse and present} these data for interviewers; assisting them to reach their perfect candidate for a job.
 
-\subsection{System Architecture}
-The architecture of your system should be given in this section. This architecture should be first represented as a block diagram (subsection 5.2.1), which clarifies different project modules and the connections between them. You may add more subsections to properly explain your design. If possible, flowcharts are better included to ensure that the big picture and the interaction between different modules are very clear to the reader. Thereafter, each module should have a separate subsequent section to clearly describe and discuss it.
 
-\subsection{Block Diagram}
-Draw the block diagram of your architecture and generally discuss its modules. After reading this subsection, interested audience should have understood the big picture of your system design and architecture. The interaction between modules should also be conveyed in this subsection
+We aimed to design an application that could be deployed and function as usual, but for our application to be able to run at a reasonable time we needed to break down the heavily computational tasks into smaller jobs that could be processed in parallel; that's when \textit{distributed system} came in the picture.
 
-\subsection{Module 1}
-Each module within your architecture should have a distinct section to explain the design of the module itself. Again, give as much details as possible, so that the reader could easily understand how the module is designed and what are the constraints that affect its design?
 
-\subsubsection{Functional Description}
-\subsubsection{Modular Decomposition}
-\subsubsection{Design Constraints}
-\subsubsection{Other Description of Module 1}
+\section{Overview and Assumptions}
+
+\subsection{Terminologies}
+In the following sub-section we define most of the used terminologies through out this chapter.
+\begin{itemize}
+\item \textbf{Applicant}: an interviewee, who's seeking a job opportunity.
+\item \textbf{Interviewer}: human resources employer whose job is interviewing applicants and choose the best fit for a job position.
+\item\textbf{Input data}: what applicants submit to fill in their application form.
+\item\textbf{Analysis}: meaningful information that guide interviewer during his/her search for a perfect candidate.
+\item\textbf{Application (platform)}: a web site application that is built to help applicants find their suitable job opportunity and for interviewers to find their best candidates.
+\item\textbf{Master}: the main operating machine (server) that takes requests, schedules them, stores results, and feedback analysis.
+\item\textbf{Node (machine)}: a separate machine that handles heavy computational requests from master.
+\item\textbf{Workers}: a set of separately located sub-servers that take jobs from master, operate them running the appropriate python script.
+\item\textbf{Model}: an intelligent agent, that is designed to handle a specific task.
+\item \textbf{Tasks/Jobs}: an individual processing request, created by the master and assigned to a worker by the master.
+\item \textbf{Scheduling}: arranging the order of execution of different jobs.
+
+
+\end{itemize}
+
+
+\subsection{Inputs and outputs}
+\label{sec:in_out}
+Let us define our inputs and outputs before we delve into designs and architectures, our application (iHire - assisting HR departments) aims to make use of every possible data that an applicant is able to provide, in order to help interviewers making their decision. Inputs that applicants are able to provide are: \textit{resumes}, \textit{answers}, and \textit{introductory video}. Capturing all of these data we are able to provide to the interviewer our analysis (output) such as: \textit{personality analysis}, \textit{emotion detection}, and \textit{resume ranking}. In simpler words, inputs are (video/textual answers/resumes) and outputs are \textit{individual analysis} on each applicant and \textit{resume ranking} on all of them together see figure \ref{fig:sys_1}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{images/sys_1.png}
+\caption{Abstract view of iHire application}
+\label{fig:sys_1}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Inputs:}
+    \begin{enumerate}
+        \item \emph{\underline{Resumes}}: a mandatory data that is required from applicants. Each one of course has a resume that emphasizes their expertise, shows their previous works, and exhibits their skills.
+        \item \emph{\underline{Textual answers}}: optional data item -that an interviewer decides if mandatory or not-, each person has his/her own personality and behaviours that we express using words; that's what we are focusing on, allowing the interviewer to create $[5:10]$ questions, requesting answers from users, these answers are our subject of interest.
+        \item \emph{\underline{Introductory video}}: another optional data item  -that an interviewer decides if mandatory or not-, taking a $[3:10]$ minutes self-recording video, where applicants talk about themselves, explaining previous works, skills, ...etc.
+    \end{enumerate}
+    \item \textbf{Outputs:}
+    \begin{enumerate}
+        \item \emph{\underline{Resume ranking}}: taking a job description created by the interviewer, we compare it with all of the submitted resumes, ranking them accordingly using different measuring techniques.
+        
+        \item \emph{\underline{Personality analysis}}: from the submitted textual answers, we analyse these data, and store behavioural characteristics for each applicant. Showing them later to interviewer helping her/him pick perfect candidates.
+        
+        \item \emph{\underline{Emotion detection}}: from the uploaded video, we analyse it frame by frame, detecting faces from frames, and then analyse them, extracting emotions that applicants express while recording themselves introducing themselves.
+    \end{enumerate}
+\end{itemize}
+
+
+
+% In this section, in pull this troduce how you design you system and develop its underlying architecture. Any employed assumptions should be clearly enumerated and justified.
+
+
+
+\section{System Architecture}
+\label{sec:system_arch}
+We designed a web application with the ability to scale-out (horizontally scale) and be applied to many more -different- models, this technique is simply called \href{https://www.journals.elsevier.com/parallel-computing}{\underline {parallel computing}}, adopted by major technology company such as Netflix and Facebook. A simpler image of this principle is implemented so that the system will be able to handle a huge amount of requests with a huge amount of processing needed at each one in a reasonable time.
+
+This is achieved by \textit{dividing} tasks into smaller ones, \textit{scheduling} them on different machines (nodes), physically apart from each other, and \textit{assembling} results for users (HRs) to make use of them.
+\newline
+A simpler view of our work in figure \ref{fig:sys_2}:
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{images/sys_2.png}
+\caption{Abstract view of the system's architecture}
+\label{fig:sys_2}
+\end{figure}
+
+Let us crack down interactions between different blocks (big modules):
+\begin{enumerate}
+    \item \textbf{Inputs and Application:}\\
+    The web application is connected with a fine front-end layer that has a very delicate user interface, allowing applicants $(M)$ to easily upload their data (resumes, video, and answers). With each request that comes to life, data is sent to the application, ready to be processed.
+    
+    \item \textbf{Application and Database:}\\
+    Every web application has its own designed database that contains all of the needed information for the application to perform normally. Ours contains two main types of data: one is the information input by users (stored so that interviewers can easily look them up later), and the second type is the analysis (tags) created from processing the later type of data.
+    
+    \item \textbf{Application and Node(s):}\\
+    The controlling mind behind the scene is called \textbf{the master}, a server that handles requests, sends them in a \textit{balanced} way to a free machine, which we call \textbf{the node}. Nodes may have multiple workers, workers are able to process information using intelligent models. Nodes return back results (analysis) which we call \textbf{tags}, that define each applicant's behavioural and emotional characteristics.
+    
+    \item \textbf{Application and Analysis:}\\
+    We previously mentioned (in point 1) the first use of our application from an applicant point of view, now we present the interviewer point of view. An interviewer is able to see a periodically updated version of the analysis done on applicants' information. Not only that, but also a \textit{resume ranking} compared among all users, which is updated when an interviewer requests so.
+    
+    
+\end{enumerate}
+
+% The architecture of your system should be given in this section. This architecture should be first represented as a block diagram (subsection 5.2.1), which clarifies different project modules and the connections between them. You may add more subsections to properly explain your design. If possible, flowcharts are better included to ensure that the big picture and the interaction between different modules are very clear to the reader. Thereafter, each module should have a separate subsequent section to clearly describe and discuss it.
+
+\newpage
+\section{Block Diagram}
+% Draw the block diagram of your architecture and generally discuss its modules. After reading this subsection, interested audience should have understood the big picture of your system design and architecture. The interaction between modules should also be conveyed in this subsection
+Now that we defined the connections between blocks generally, let's discuss the two main components that make up our project.
+\begin{enumerate}
+    \item Nodes/Machines
+    \item Web application
+\end{enumerate}
+
+
+\subsection{Nodes/Machines}
+As we slightly mentioned before, due to the heavy computations required by the system; we decided to distribute the work load among different machines (nodes), in order to achieve parallel execution. These machines could be physically distributed from each other. 
+
+A node may have multiple \textit{workers}, these workers run \textit{python} scripts that actually do the heavy work (analysis). As we can see in figure \ref{fig:sys_4}, we have two workers inside a node connected to each of the three models required for obtaining analysis (more on that later).
+
+Workers are assigned \textit{tasks} from \textit{master}, depending on its type they execute one of three scripts, each operating on a different model with different data item \ref{sec:in_out}. Then respond with a \textit{JSON} format goes as follows:
+
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+"success": true,
+"error": "",
+"results":[]
+}
+\end{lstlisting}
+
+
+Workers are prone to errors, failure, or halting; that's why a master never state a task to be completed unless a worker responses with appropriate results. Depending on its state (failure or success) it decides what to do next: whether it stores results, or re-assign the same task for another worker.
+
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=0.8\textwidth]{images/sys_4.png}
+\includegraphics[width=10cm,height=10cm]{images/sys_4.png}
+\caption{Abstract view of a node/machine}
+\label{fig:sys_4}
+\end{figure}
+
+Each worker periodically report to master with a \textit{heartbeat} stating that it is functioning as usual, ready to accept any new tasks. Out of service workers are not assigned any tasks until they're back on.
+
+In the following table we map each input with expected output, operating on a different module \ref{tbl:in_out_model}:\newline
+
+\begingroup
+\centering
+\begin{tabular} { | p {2 cm} || p {3 cm} | p {4 cm} |p {6 cm} | }
+    \hline
+    \textbf{Module} & \textbf{Input(s)} & \textbf{Outputs} & \textbf{Functionality}\\
+    \hline
+    \hline
+    Emotion detection & Introductory video & The most dominant \textit{emotion} expressed during the recording & Detecting facial emotions extracted from frames of the uploaded video\\
+    \hline
+    Personality analysis & Textual answers & Probabilistic estimation of personality traits & Predicting personality traits from context of textual answers\\
+    \hline
+    Resume ranker & Collection of resumes and a job description & Resumes ranked according to job description & Cosine similarity between each resume and the job description, and TF-IDF ranking among all resumes\\
+    \hline
+\end{tabular}
+\captionof{table}{Mapping models with inputs, outputs and functionality}
+\label{tbl:in_out_model}
+\endgroup
+\vspace{1cm}
+
+The worker is written in Node.js and listens for jobs/tasks on a message queue using \href{https://www.rabbitmq.com/}{\underline{RabbitMQ}}, when it receives a job, it fetches the required data from the master, runs the corresponding python script, and stores back the results in the master. See Fig.\ref{fig:worker_flow}.
+
+When a worker lose the connection with the master, due to a network failure or a failure in the worker itself, the master keeps the job on disk to ensure that it won't be lost even if the master is down, it then re-queue the job that the worker didn't finish and send it to another available worker.
+The master makes sure that the job is finished, when the worker sends an acknowledgement to the sent job.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth, frame]{images/worker flow chart.png}
+\caption{Worker working cycle}
+\label{fig:worker_flow}
+\end{figure}
+
+By now you probably have a general view of the main components operating inside each node, more details will follow in the upcoming sections.
+
+\subsection{Web application}
+As we slightly mentioned before, the web site works as a platform that enables interviewers to reach their applicants, and evaluate them with the help of artificial intelligence, which enables them to be more insightful when picking the best candidate for the job.
+
+Like any other common web application, ours contain two distinctive modules; \emph{front-end} and \emph{back-end}, communicating through \emph{RESTful API} \ref{sec:Rest API}, see figure \ref{fig:sys_3}. \\
+
+Now that we defined our two main blocks, let us go deeper and discover each module that's operating within it.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.9\textwidth, frame]{images/sys_3.png}
+\caption{Abstract view of the system's web application}
+\label{fig:sys_3}
+\end{figure}
+\clearpage
+% \textbf{TBC: more about application}
+
+
+
+
+\newpage
+\section{Module 1: Emotion Detection Agent}\
+\label{sec:module_1}
+% Each module within your architecture should have a distinct section to explain the design of the module itself. Again, give as much details as possible, so that the reader could easily understand how the module is designed and what are the constraints that affect its design?
+In this section we present the first of our three intelligent agents, in a nutshell emotion detection agent takes videos (chunk of frames) as input, process each frame independently, estimates the dominant emotion expressed at this frame, and finally average results from all frames. Emotions detected are: anger, sadness, happiness, neutral, surprise, disgust and fear.
+
+\begin{itemize}
+     
+\item \textbf{Input}: mp4 video.
+
+\item \textbf{Output example}:
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+"success": true,
+"error": "",
+"results":[
+    ["angry":0.01, "disgust":0.002, "fear":0.0045, 
+    "happy":0.95, "sad":0.02, "surprise":0.008, 
+    "neutral":0.0055]
+        ]
+}
+\end{lstlisting}
+\end{itemize}
+
+Frames are captured by a rate of $30 fps$ (frame per seconds), a $1$ minute video will extract at most $1800 = 30*1*60$ frames
+
+As we can see from the \textit{json} response, \textit{"results"} is an array of multiple results, and that's because we expanded the detection of emotions beyond one average number of the whole video, instead we set an additional parameter called \textit{split}, an integer hard-coded by the programmer, represents the number of splits the video will be devised into, so that if $split = 3$ for a 3 minutes video, results will be an array of three lists, one for each minute, averaging $1800$ frames.
+
+\subsection{Functional Description}
+
+Emotion detection agent processes videos through multiple phases, in order to reach final results, we conclude the working cycle of the agent in four phases, see figure \ref{fig:emotion_flow}:
+\begin{enumerate}
+    \item Parsing and loading arguments
+    \item Detecting faces and pre-processing
+    \item Predicting emotions
+    \item Report results\\
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=17cm, height=19cm]{images/emotion_flow.png}
+\includegraphics[width=1\textwidth]{images/emotion_flow.png}
+\caption{Flowchart: Emotion detection agent working cycle}
+\label{fig:emotion_flow}
+\end{figure}
+
+\textbf{1- Parsing and loading arguments}: workers wake up (execute) agents with arguments passed to them, in emotion detection agent the needed arguments are: \textbf{path to video on hard disk}, \textbf{path to model on hard disk}, and \textbf{number of splits}. So a necessary step here is to check for the existence of the video as well as the model that will be used. Then, model and video are loaded into the RAM. CNN model is about $1 MB$ maximum and videos at HD (high definition) recorded for $5$ minutes are about $50 MB$, so memory should not be exceeded, and if so happens, tasks will fail and master will re-assign them again. \\
+
+\textbf{2- Detecting faces and pre-processing}: the agent loops over all frames until it hits a \textit{break} statement, each frame is processed independently, if frame $i$ fails this will not affect frame $i+1$. For each frame, first we extract \textit{boxes} from it, where each box represent a place where a face might be, this process is called \textit{face detection}, it's a widely known problem that has a near-optimal solution using haar cascade features \cite{haar}. A \textbf{pre-made} model was used for that purpose, since it's not our main focus. Then, from all of the boxes extracted -if many of them exist- we pick the best one of them, with probability ordering and coordination estimation; by calculating the area of each box, and only processing the largest one. If no faces where detected, this frame is discarded. And finally, we crop frames; to focus more on the important features of the face, more like the state of our training dataset.\\
+
+\textbf{3- Predicting emotions}: image is now ready, focused on the face, and cropped. Then it's applied to the CNN \ref{Convolutional Neural Network} model, where outputs will be estimates of each emotion there is (seven of them), then a soft-max function is applied; to normalize the outputs and make it easier to pick the maximum argument of these results.\\
+
+\textbf{4- Report results}: after processing all of the frames, we end up with two possible outcomes, one is that we end up with no results at all, this means that all the frames did not have faces on them -very unlikely to happen-, second one is that results are stored normally, all there's left now is to divide them into equal \textit{splits}, average each split, save the results in \textit{json} format, and store it on hard disk for the worker.\\
+
+Needless to say that, if any halting error occurred during the execution of any of these procedures, a response will still be stored on hard disk, but with a corresponding error message.
+
+
+\subsection{Modular Decomposition}
+In this section we give a thorough explanation of our main building block, which is the CNN model. We'll discuss different topics concerning machine learning strategy \ref{Machine Learning Strategy}, artificial neural network \ref{Artificial Neural Network} and convolutional neural network \ref{Convolutional Neural Network}. So please, refer to the previous chapter if you get stuck.\\
+
+\textbf{1- Data acquiring}: We used \href{https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data}{\underline{Fer2013}}. The data consists of $48 \times 48$ pixel gray-scale images of faces. The faces have been automatically registered so that the face is more or less centered and occupies about the same amount of space in each image. Labels (outputs) are categorical as follows: (0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral). The training set consists of 28,709 examples.
+
+Training data was already pre-processed, faces at center, gray-scaled, and cropped. No more pre-processing was required.\\
+
+\textbf{2- Final model architecture:} we already knew from the beginning that we needed a CNN architecture to conquer this problem, since we are dealing with images (frames); after a long time of trial and error of trying different architectures with different sizes, we found that the architecture at figure \ref{fig:emotion_arch_1} and \ref{fig:emotion_arch_2} gives the best results compared to previous architecture and to our benchmark \textit{-which we'll discuss later-}.
+
+This architecture is inspired by \textit{Xception} \cite{xception} architecture, which combines the use of residual modules \cite{He} and depth-wise separable convolutions \cite{andrew}.
+
+Final architecture is a fully-convolutional neural network that contains 4 residual depth-wise separable convolutions where each convolution is followed by a batch normalization operation and a ReLU activation function. The last layer applies a global average pooling and a soft-max activation function to produce a prediction. This architecture has approximately 60,000 parameters.
+
+We used \textit{adam} \ref{updating_weights} optimization function, with its default value $0.001$, \textit{cross-entropy} \ref{sec:loss function} loss function, and \textit{$l_2$} regularization \ref{regularization}.
+
+
+
+% The model goes through different phases, each with a purpose it's designed to accomplish, at first images are fed (in batches of size 32), each with a dimension of (46x46x3), a kernel with three different layers (convolution, batch normalization, a ReLU activation function) is then applied to expand the depth thus having more features to examine. 
+
+\subsection{Design Constraints}
+For our agent to function appropriately, self-recorded videos need be focused on the applicant; face centered, no more than one person in the record, not too far from the camera, and to talk about different subjects, thus expressing more.
+
+Emotion detection agent works well with globally defined videos' extensions, such as mp4, any other unknown sort of videos may not function at all.
+
+Processing 1 minute of frames takes approximately 1.5 minutes, this is a very acceptable execution time for us, achieving the automation purpose we aimed for (ie. it doesn't take much longer than a real evaluation done manually by interviewers).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.0\textwidth]{images/emotion_arch_1.png}
+\caption{Emotion detection CNN architecture part:1}
+\label{fig:emotion_arch_1}
+\end{figure}
+\clearpage
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{images/emotion_arch_2.png}
+\caption{Emotion detection CNN architecture part:2}
+\label{fig:emotion_arch_2}
+\end{figure}
+
+
+
+
+
+
+
+\newpage
+\section{Module 2: Personality Prediction Agent}
+\label{sec:module_2}
+Before reading this section please make sure you are familiar with OCEAN notations, meaning, and usage \ref{Personality Analysis}.
+
+Humans tend to speak their mind spontaneously; so we took advantage of this behaviour. Created an agent that's able to predict behavioural characteristics, which we call \textbf{traits}.
+
+Analysing and understanding the context of textual data requires a \textit{sequence model} \ref{Sequence Models} with a \textit{supervised} dataset to learn from. Luckily for us, a world-wide known problem on \textit{kaggle} platform share the same interests with us, they use a supervised dataset for \textit{MBTI} traits \href{https://www.kaggle.com/datasnaek/mbti-type}{(\underline{source})}. This dataset contains over 8600 rows of data, on each row is a person’s:
+\begin{itemize}
+    \item Type (This persons 4 letter MBTI code/type)
+    \item A section of each of the last 50 things they have posted on Twitter.
+\end{itemize}
+
+Our problem statement clearly is a classification problem with the textual input consists of \textit{answers} applicants provide for asked questions created by the interviewer. Notice that we do not check if the answer is correct or false, neither do we check for facts, it's the interviewer responsibility to ask triggering questions. Also, we do not process questions and compare them to answers, we are only focusing on answers provided by the applicants.
+
+
+\begin{itemize}
+    \item \textbf{Inputs}: Textual answers.
+    \item \textbf{Outputs}: 
+    \begin{lstlisting}[language=json,firstnumber=1]
+{
+"success": true,
+"error": "",
+"results":{
+    "type":"INTJ",
+    "personality":"The Architect who's Imaginative, Strategic and Planner"
+    }
+}
+    \end{lstlisting}
+\end{itemize}
+\subsection{Functional Description}
+In the following section we'll discuss the working flow of personality analysis agent, starting with raw data, pre-processing it and finally prediction using sequence model \ref{fig:personality_flow}.
+
+Working flow goes as follow:
+\begin{enumerate}
+    \item Parsing and loading arguments
+    \item Pre-processing and tokenization
+    \item Prediction
+    \item Mapping
+    \item Report results
+\end{enumerate}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{images/personality_flow.png}
+\caption{Flowchart: Personality analysis agent working cycle}
+\label{fig:personality_flow}
+\end{figure}
+
+\textbf{1- Parsing and loading arguments}: workers wake up (execute) agents with arguments passed to them, in personality analysis agent the needed argument is: \textbf{path to textual answers}, and \textbf{path to model on hard disk}. So a necessary step here is to check for the existence of the ".txt" file as well as the model that will be used. Then both are loaded into the RAM.
+
+\begin{itemize}
+    \item \textbf{Input}: path to text file
+    \item \textbf{Output}: raw text\\
+\end{itemize}
+
+
+
+
+\textbf{2- Pre-processing and tokenization}: a set of sequential updates/modifications applied to the test \textit{text} to prepare it from the raw form into a set of tokenized words. Using the help of regular expressions and \textit{nltk} library. At first we trim the raw text into separate meaningful words.
+
+\begin{itemize}
+    \item Concatenate lines; so that all answers are one large bunch of text.
+    \item Remove any "http" sentences (ie. URLs).
+    \item Split the whole text into separate words.
+    \item Remove punctuation's.
+    \item Remove digits.
+    \item Remove stop words such as (a, an, and ,..etc.).
+    \item Remove any repeated word (keep unique words).
+    \item Remove any word with less than three characters.
+    \item Remove multiple spaces.\\
+\end{itemize}
+
+Notice that, in production (real time performance) we eliminated some of these pre-processing steps; to increase speeding performance.\\
+
+Then we tokenize words, tokenization is the process of representing words with a unique number that identifies it, refer to the introductory section at: \ref{Sequence Models} for more, but in order for the tokenizer to be working appropriately, we must use the same tokenizer we used when preparing dataset for training. We used \textit{transformers} library for that purpose, more on that next section. The model is trained on a fixed input size equals to 512 words, so the tokenizer make sure that if the number of words is not enough it pads the input with zeros, and if it does exceed the limit, it truncates the input. 
+ 
+\begin{itemize}
+    \item \textbf{Input}: raw text
+    \item \textbf{Output}: 512 tokenized words\\
+\end{itemize}
+
+
+\textbf{3- Prediction}: now that we've tokenized our text into separate clean words (numbers), they are ready to be processed and fed to the model. Specifications of the final model architecture are provided next section. But for now what we care about is the form of the output results, as we previously discussed "MBTI" (Myers Briggs Type Indicator) consists of 4 different characteristics, each one of them has its opposing one, I/E (introvert or extrovert), S/N (sensing or intuition), T/F (thinking or feeling), and J/P (judging or perceiving). The four (binary) characteristics creates 16 different combination $2^4$. Thus, the model's output is a soft-max prediction of 16 classes. Finally, we pick the most dominant trait, and feed it to the mapper.
+ 
+\begin{itemize}
+    \item \textbf{Input}: raw text
+    \item \textbf{Output}: tokenized words\\
+\end{itemize}
+
+
+\textbf{4- Mapper}: results such as "ISTP" are not meaningful to interviewers, thus we needed to translate them into meaningful descriptions, that will help interviewers make their decision. Traits are mapped using the table below \ref{tbl:mbti}.
+
+\begin{itemize}
+    \item \textbf{Input}: MBTI trait (eg. "ISTP")
+    \item \textbf{Output}: description corresponding to this type\\
+\end{itemize}
+ 
+\begingroup
+\centering
+\begin{tabular} { | p {2 cm} || p {12 cm} |}
+    \hline
+    \textbf{Trait} & \textbf{Description}\\
+    \hline
+    \hline
+    \rule{0pt}{15pt} INTJ & The Architect who's Imaginative, Strategic and Planner\\
+    \hline
+    \rule{0pt}{15pt} INTP & The Logician who's Innovative, Curious and Logical\\
+    \hline
+    \rule{0pt}{15pt} ENTJ & The Commander who's Bold, Imaginative and Strong-willed\\
+    \hline
+    \rule{0pt}{15pt} ENTP & The Debater who's Smart, Curious and Intellectual\\
+    \hline
+    \rule{0pt}{15pt} INFJ & The Advocate who's Quiet, Mystical and Idealist\\
+    \hline
+    \rule{0pt}{15pt} INFP & The Mediator who's Poetic, Kind and Altruistic\\
+    \hline
+    \rule{0pt}{15pt} ENFJ  &  The Protagonist who's Charismatic, Inspiring and Natural-Leaders\\
+    \hline
+    \rule{0pt}{15pt} ENFP    & The Campaigner who's Enthusiastic, Creative and Sociable\\
+    \hline
+    \rule{0pt}{15pt} ISTJ   & The Logistician who's Practical, Fact-Minded and Reliable\\
+    \hline
+    \rule{0pt}{15pt} ISFJ  &  The Defender who's Protective, Warm and Caring\\
+    \hline
+    \rule{0pt}{15pt} ESTJ &   The Executive who's Organised, Punctual and Leader\\
+    \hline
+    \rule{0pt}{15pt}  ESFJ  &  The Consul who's Caring, Social and Popular\\
+    \hline
+    \rule{0pt}{15pt} ISTP  &  The Virtuoso who's Bold, Practical and Experimental\\
+    \hline
+    \rule{0pt}{15pt} ISFP   & The Adventurer who's Artistic, Charming and Explorers\\
+    \hline
+    \rule{0pt}{15pt} ESTP    &The Entrepreneur who's Smart, Energetic and Perceptive\\
+    \hline
+    \rule{0pt}{15pt} ESFP    &The Entertainer who's Spontaneous, Energetic and Enthusiastic\\
+    \hline
+    
+\end{tabular}
+\captionof{table}{Mapping MBTI traits with description}
+\label{tbl:mbti}
+\endgroup
+\vspace{1cm}
+
+\textbf{5- Report results}: now that we have results, we store them in \textit{json} format on hard disk for the \textit{worker} to take care of. \\
+
+
+Needless to say that, if any halting error occurred during the execution of any of these procedures, a response will still be stored on hard disk, with a corresponding error message.
+
+
+\subsection{Modular Decomposition}
+In this section we view the architecture of the model we used, in order to deal with words (text) we need to present them in a higher dimensional space, thus the concept of words embeddings arises \ref{word_embedding}. After a long time of trial and error we had with this type of model, we weren't able to achieve accuracy better than the benchmark, in the matter of fact, this type of problem does not yet have a solid solution or a ground truth to it due to several parameters which we'll discuss next chapter. Nevertheless, we trained our dataset with a simple, yet powerful, architecture shown in figure \ref{fig:personality_arch}.\\
+
+Architecture composes of two main components, BERT embeddings and two dense layers, in order to increase efficiency we didn't initialize our embeddings randomly, we used BERT model's pre-trained embeddings. Then we merged this layer with a two dense (fully-connected) layers; one to reduce dimensionality and learn from embeddings, attached with it a ReLU activation layer, then the second one makes actual predictions, attached with it a soft-max layer (to formulate and normalize predictions), since BERT embeddings will not evolve dramatically (it's already trained on massive amount of data).
+We used \textit{adam} \ref{updating_weights} optimization function, with learning rate equals $0.00001$, and \textit{cross-entropy} \ref{sec:loss function} loss function.\\
+
+Let's discuss architecture's dimensions, input tokenized words are of size 512, each one is mapped with embedding matrix, thus dimension will be $[512,768]$, 768 is what BERT is trained on, then two fully connected layers, the first takes inputs $[512,768]$ and output $[512,50]$, second one takes inputs $[512,50]$, and outputs $[512,16]$. Last layer is a soft-max layer, used to formulate predictions and normalize them.
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=1\textwidth]{images/personality_arch.png}
+\caption{Personality analysis architecture}
+\label{fig:personality_arch}
+\end{figure}
+
+\subsection{Design Constraints}
+The main concern about this model is that results are subjective, you can see an image and agree on the content of it (whether a dog or a cat), but when it comes to expression with words this is quite hard to completely agree on the same opinion. Literature is art, one can't be so deterministic about an opinion.
+
+Therefore, inputs and results may not always satisfy everyone in the room, and we accept that outcome.
+
+
+
+% \subsection{Other Description of Module 2}
+
+
+
+
+
+
+
+
+
+\newpage
+\section{Module 3: Resume Ranker Agent}
+\label{sec:module_3}
+In the following section we present the third and final intelligent agent, resume ranker transforms documents/words into a high dimensional representation and compare resumes with job description to rank them appropriately.
+
+\begin{itemize}
+    \item \textbf{Inputs}: 1- List of resumes. 2- A job description.
+    \item \textbf{Outputs}: 
+    \begin{lstlisting}[language=json,firstnumber=1]
+{
+"success": true,
+"error": "",
+"results":[
+    {"id": file_1_name, "scores":[0.7, 100]},
+    {"id": file_2_name, "scores":[0.5, 20]},
+    {"id": file_3_name, "scores":[0.9, 122]}
+        ]
+}
+    \end{lstlisting}
+\end{itemize}
+
+Applicants submit their resumes in a document format (pdf, doc, docx ..etc.), interviewer already stated the job description -when he/she created the job position-, resume ranker takes these two inputs, transform each of them using word2vec model \ref{word_embedding}  trained on sequences of words extracted from resumes in different industries.
+
+\subsection{Functional Description}
+As usual, workers wake up (execute) the agent, parsing with it the needed paths for the agent to work: \textbf{path to the model}, \textbf{path to job description}, and \textbf{path to directory with resumes}. At first, resume ranker validates these paths, and make sure every thing is in place. Then loads AI sequence model \ref{Sequence Models}. Parses the job description (we are discussing parsing the following section), if the agent was not able to extract any tokens from the job description it reports an error (this is a rare case, could only occur when a job description contains meaningless words). Loops on all of the resumes, parsing them one by one, if one does not contain any tokens it gets discarded, calculates scores for each one, and store them. Finally, scores are sorted in descending order, and stored on hard disk for the worker.
+
+A flowchart of the working cycle of resume ranker agent in figure: \ref{fig:resume_ranker_flow}.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=1\textwidth]{images/resume_ranker_arch.png}
+\caption{Flowchart: Resume ranker agent working cycle}
+\label{fig:resume_ranker_flow}
+\end{figure}
+
+\subsection{Modular Decomposition}
+In this section we discuss the inner-workings of three units identifying resume ranker agent:
+\begin{enumerate}
+    \item Parser
+    \item Model
+    \item Ranker
+\end{enumerate}
+
+
+\subsubsection{Parser}
+The parser's main functionality is to tokenize the data stored in files with different extensions (pdf, docx, txt, ..etc).
+\begin{itemize}
+    \item \textbf{Input}: path to a document file on the hard disk.
+    \item \textbf{Output}: tokenized list of words.
+\end{itemize}
+
+It does so by applying a sequential work flow that goes as follows: opens the document using \href{https://textract.readthedocs.io/en/stable/}{\underline{textract}} library, splits the whole document into separate words (list of words), then remove meaningless words.
+
+Removing noisy/meaningless words is applied using \href{https://www.nltk.org/}{\underline{nltk}} library. Below is a list of items extracted out from the list of words:
+
+\begin{itemize}
+    \item names, phone numbers and emails.
+    \item redundant words
+    \item stop words (such as: "a", "the", "and" ..etc.).
+    \item punctuation's
+    \item any one-character words
+    \item any digits
+\end{itemize}
+
+Finally, it pre-process words using two major techniques used in text mining: lemmatization \footnote{Lemmatization is the process of grouping together the inflected forms of a word so they can be analysed as a single item.} and stemming\footnote{Stemming is the process of reducing inflected (or sometimes derived) words to their word stem, base or root.}. We removed stemming from pre-processing steps, as it decreases performance.
+
+\subsubsection{Model}
+The model is a mapper, that takes a word, that's very likely included in the vocabulary, and transform it into a high dimensional space.
+
+\begin{itemize}
+    \item \textbf{Input}: a word (token)
+    \item \textbf{Output}: vector [300x1] -all numbers-
+\end{itemize}
+
+This is an unsupervised learning problem with textual data as inputs; thus the best approach to take was training word embeddings \ref{word_embedding}. As we discussed before, word2vec architectures are used to train word embeddings using one of two approaches: skip-gram or CBOW. Without discussing much details of trial and error (discussed next chapter), we settled on a skip-gram architecture with vector size = 300, trained for 150 epochs with learning rate equals to 0.001, decaying linearly up till' 0.0001. Adjusting window size to 15. For illustration, an embedding matrix's dimensions are [vector size , vocabulary size].\\
+
+Word2vec skip-gram architecture has three main components: \textbf{vocabulary builder}: takes the raw data in the form of sentences and extracts unique words from them to build the vocabulary of the system, \textbf{context builder}: adjusts center words with their corresponding context targets limited to the specified window size, and \textbf{ANN}: a 2-hidden layer architecture used for predicting targets given center words, and feedback with updated embeddings. The resulting model is able to transform similar words into vectors that are close to each other.\\
+
+We trained our model with NO pre-trained embeddings, data was acquired from two different sources trained on one and tested on the other, to ensure generalization of our model. After pre-processing training data, the vocabulary size was around 60K words.
+
+\subsubsection{Ranker}
+\label{sec:ranker}
+Now that we have numerical vectors representing every word in our system, it's time for ranking and sorting.
+
+Two different ranking techniques were used:
+\begin{enumerate}
+    \item \textbf{Cosine similarity} \ref{cosine}\\
+    
+    We slide a window of configurable size (default=5), and skipping words with also a configurable value (default=2). Creating a $N^2$ loop for each resume, comparing its sentences (of size 5) with every sentence of the job description (of size 5), comparison is applied using cosine similarity, and then averaged over all of the compared sentences.\\
+    
+    For example, a document with 10 words, will create 4 sentences, a job description of 5 words will create 1 sentence, this sentence will be compared with the other 4, and results will be averaged.\\
+    
+    Notice that we have vector representation per word not vector, so we had to compute the mean of these words to create a \textit{sent2vec} representation that's comparable using cosine similarity.\\
+    
+    \item \textbf{TF-IDF} \ref{tfidf}\\
+    
+    The second technique is used mainly in search engines, to compare queries (job description) against list of documents (resumes).\\
+    
+    However, we added new concept to it, since we have word representation of our vocabulary, we \textbf{expand} the search by taking every word in the job description and search for the most similar $N$ words (N is configurable by the programmer) and hence add these words into our search query. Ordering between words is not required, since TF-IDF doesn't depend on where the word exist in the document, but depends on the fact that it does exist in the document.\\
+    
+    We modified TF-IDF, since we expanded our search query, now we may have words appearing more than one time, these words in the search query are more important than the others, also created words using most-N similar may not be very similar (ie. cosine similarity between them and the original word is low), happens when N is large, so a probability is added to ensure that their effect is not badly affecting the final results.\\
+    
+    For example, a job description with two words (architect designer), may be expanded to be (architect:1, engineer:0.8, designer:1, developer:0.7). Probabilistic values are multiplied by TF when calculating TF-IDF; to express how important is this word. 
+    
+\end{enumerate}
+
+\subsection{Design Constraints}
+We conclude our discussion with some constraints limiting our agent, when job description is not big enough cosine similarity fails to distinguish unrelated resumes with a huge margin, they will still get a lower value compared to matching resumes, but this value will still be relatively high. However, TF-IDF does not suffer from this issue, as we expand our search space irrelative resumes are discarded vastly.\\
+
+So we can say that cosine similarity is good for comparing matching resumes with each others, while TF-IDF is better when it comes to detecting unrelated resumes.    
+
+
+\newpage
+\section{Module 4: Master}
+\label{sec:module_4}
+In this section we will present the master where the back-end of the application resides. 
+It listens for the REST API HTTP requests from the client (front-end) and responds to it. 
+
+\begin{itemize}
+    \item \textbf{Input}: API HTTP JSON request, like the following:
+    \begin{lstlisting}[language=json,firstnumber=1]
+{
+    url: "localhost:3000/api/user/login",
+    method: "POST",
+    body: {
+        "email": "hr@gmail.com",
+        "password": "password"
+    }
+}
+    \end{lstlisting}
+    \item \textbf{Output}: HTTP JSON response, like the following:
+    \begin{lstlisting}[language=json,firstnumber=1]
+{
+    "id": "60ba3b08f8407270cf748dd4",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYmEzYjA4Zjg0MDcyNzBjZjc0OGRkNCIsImlhdCI6MTYyNjk2OTI4OCwiZXhwIjoxNjI3MDU1Njg4fQ.1BzoeIYRWdQDG9gQ9athYvShrZuKlcoOZ9nliSuPFCI"
+}
+    \end{lstlisting}
+\end{itemize}
+
+\subsection{Functional Description}
+It's implemented using Node.js and Express. 
+All the requests accept and send in JSON format except for the requests that return resumes, videos and pictures.
+It also uses \href{https://www.rabbitmq.com/}{\underline{RabbitMQ}} to communicate with the worker and to send jobs to it.
+It uses \href{https://www.mongodb.com/}{\underline{MongoDB}} for the database.
+
+\subsection{Modular Decomposition}
+It consists of 4 controllers.
+\begin{enumerate}
+    \item User controller
+    \item Job controller
+    \item Question controller
+    \item Application controller
+\end{enumerate}
+
+\subsubsection{User controller}
+It's responsible for handling requests about users which include:
+\begin{enumerate}
+    \item signup
+    \item login
+    \item me (returns information about the logged in user)
+    \item update profile
+    \item promote (the admin change the role of a user to be HR)
+    \item demote (the admin change the role of a user back to applicant)
+    \item view and search for all users (for admin)
+    \item view a certain user (HR can view all applicants and admin can view all users including HR and applicants)
+    \item update user picture
+    \item delete user picture
+\end{enumerate}
+
+\subsubsection{Job controller}
+It's responsible for handling requests about creating and handling jobs. It includes the following endpoints.
+\begin{enumerate}
+    \item view all available jobs and search for them (anyone can view the available jobs even if he is not registered in the website)
+    \item view the details of a certain job 
+    \item view application (When an applicant apply for a certain job, if he applied before, he will see the details of the application, and if he didn't apply, he will see his answers to the previously answered questions that exist in this job)
+    \item get resumes (the worker requests the resumes information for a certain job, so that it can use it in ranking)
+    \item analyze resumes (the HR requests to analyze the current resumes for a job, then the master sends a task to the worker to start in ranking resumes for this job)
+    \item store ranked applicants (the worker stores the data of the ranked applicants in the database of the back-end after processing their resumes)
+    \item view ranked applicants (the HR views the ranked applicants after processing their resumes by the worker and storing the results in the back-end)
+    \item create a job (the HR stores a newly created job)
+    \item enable a job (the admin or the HR can enable a job, so that applicants can apply for it)
+    \item disable a job (the admin or the HR can disable a job, so that no applicants can apply for it)
+    \item update a job (the HR can update a job details)
+\end{enumerate}
+
+\subsubsection{Question controller}
+It's responsible for dealing with requests about questions that are used in jobs. It includes the following requests
+\begin{enumerate}
+    \item get all available questions and search for them, so that the HR can choose from them to put in a job.
+    \item add a new question.
+    \item delete a question.
+\end{enumerate}
+
+\subsubsection{Application controller}
+This controller is responsible for handling requests from an applicant to apply for a job and analyze the application data.
+It includes the following requests:
+\begin{enumerate}
+    \item view application (the HR or the admin or the applicant to that application can view the details of the application including the question answers, resume and video)
+    \item get application answers (the worker requests the concatenated text of the applicant answers, so that it can process it)
+    \item apply for a job (an applicant can apply for a job and store his answers to the required questions, and upload his resume and an introductory video of himself).
+    \item update the application (the applicant can update his application data including answers, resume and video)
+    \item delete resume and video (the applicant can delete his uploaded resume and video)
+    \item store analyzed data (when the applicant apply for a job and uploads answers and video, they are sent directly to the worker to be processed, when the worker finish the processing, it sends a request to the back-end to store the analyzed video and personality of the applicant)
+\end{enumerate}
+
+
+\newpage
+
+\section{Module 5: Front-end}
+\label{sec:module_5}
+
+In this section we will present the User Interface module where the different types of users can interact and use the application. 
+
+\subsection{Functional Description}
+\label{sec:module_5_func_description}
+
+We assume that we are developing our application to large foundations that face permanently the hiring problem. So we will serve them as our tenants.
+
+The User Interface is implemented using react, react-redux, fluent UI JavaScript libraries.
+
+\begin{itemize}
+    \item react:  JavaScript library developed by Facebook. It simplifies creating interactive User Interface with great functionalities and less effort.
+    \item redux: A state container for JavaScript apps. It simplifies state management in a JavaScript application and manipulates the application state in a centralized way. It provides a predictable, easily debugged and flexible state container.
+    \item fluent UI: JavaScript library developed by Microsoft. it is a collection of UX frameworks for creating fancy applications. It enhances application user interface, design and interaction behavior.
+
+\end{itemize}
+
+\subsection{Modular Decomposition}
+\label{sec:module_5_modular_decomposition}
+
+There exist three main users for the application:
+\begin{enumerate}
+    \item Site Administrator 
+    \item Human Resources 
+    \item Applicant
+\end{enumerate}
+
+\subsection{Site Administrator}
+
+A single employee in the company that has the authority to manage other users and view their profiles.
+
+The administrator can promote an applicant to be a human resource employee or demote a human resource employee to an applicant user as in fig \ref{fig:admin_manage}.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm, height=6cm, frame]{images/User Interface/admin_manage.png}
+\caption{Admin can promote or demote users through admin panel}
+\label{fig:admin_manage}
+\end{figure}
+
+\subsection{Human Resources}
+
+They are employees representing the foundation, They have an important role in hiring process.
+
+HR employee can create new jobs. As in fig \ref{fig:hr_create}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm,height=6cm, frame]{images/User Interface/hr_create.png}
+\caption{HR creates a new job}
+\label{fig:hr_create}
+\end{figure}
+
+HR can edit any available job or view the statistics of the applicants. As in fig \ref{fig:hr_edit_view}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm,height=6cm, frame]{images/User Interface/hr_edit_view.png}
+\caption{HR can view all available jobs and edit or view them}
+\label{fig:hr_edit_view}
+\end{figure}
+
+HR can have a full image of all of the applicants sorted according to the CV ranker, get the analysis of their behavior and personality. As in fig \ref{fig:hr_view}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm,height=5cm, frame]{images/User Interface/view.png}
+\caption{HR view all applicants analysis}
+\label{fig:hr_view}
+\end{figure}
+
+
+\subsection{Applicant}
+
+An applicant is a normal user that is interested to jobs offered by the foundation, and applies to it.
+
+The applicant can view available jobs and apply on a job. As in fig \ref{fig:applicant_apply}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm,height=6cm, frame]{images/User Interface/applicant_apply.png}
+\caption{Applicant should fill all application requirements and apply}
+\label{fig:applicant_apply}
+\end{figure}
+
+The applicant can view its previous applications and can edit them. As in fig \ref{fig:applicant_apply}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=10cm,height=6cm, frame]{images/User Interface/applicant_view_app.png}
+\caption{Applicant can view it application}
+\label{fig:applicant_view_app}
+\end{figure}
+
+
+\subsection{All Users}
+
+Some functionalities are provided to all users in the system
+
+Any user can view its own profile and its contributions. As in fig \ref{fig:user_view_profile}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=14cm,height=8cm, frame]{images/User Interface/user_view_profile.png}
+\caption{The profile contains main info about user and his contributions}
+\label{fig:user_view_profile}
+\end{figure}
+
+Any user can edit its profile picture, password or name. As in fig \ref{fig:user_edit_profile}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=14cm,height=8cm, frame]{images/User Interface/user_edit_profile.png}
+\caption{Update profile picture, name, password}
+\label{fig:user_edit_profile}
+\end{figure}
