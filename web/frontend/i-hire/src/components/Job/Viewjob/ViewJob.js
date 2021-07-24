@@ -133,7 +133,6 @@ function ViewJob() {
             sortAscendingAriaLabel: 'Sorted A to Z',
             sortDescendingAriaLabel: 'Sorted Z to A',
             isPadded: true,
-            onColumnClick: () => sortAppliedAt(),
             onRender: (item) => {
                 const date = new Date(item.appliedAt);
                 const dateStr = date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear();
@@ -156,7 +155,6 @@ function ViewJob() {
             sortDescendingAriaLabel: 'Sorted Z to A',
             isSorted: true,
             isSortedDescending: true,
-            onColumnClick: () => sortCVs(),
             data: 'number',
             isPadded: true,
         },
@@ -209,7 +207,7 @@ function ViewJob() {
     }
 
 
-    const itemStyle = {fontSize: '25px'};
+    const itemStyle = {fontSize: '25px', color: 'red'};
     const itemContentStyle = {fontSize: '18px', paddingTop: '4px'};
 
     const getTopEmotions = () => {
@@ -248,6 +246,12 @@ function ViewJob() {
                 });
 
                 const data1 = await res1.json();
+                console.log(data1);
+                if(data1.msg === "No resumes for this job"){
+                    alert('No applicants found in this job');
+                    history.push('/');
+                    return;
+                }
                 var data;
                 var itr = 0;
                 do{
@@ -258,10 +262,16 @@ function ViewJob() {
                         }
                     });
                     data = await res.json();
-                    await sleep(2000);
+                    await sleep(200);
                     console.log(data);
                     itr += 1;
-                }while(data.errors && itr < 1);
+                }while(!data.users && itr < 3);
+
+                if(!data.users){
+                    alert('job resumes are being processed');
+                    history.push('/');
+                    return;
+                }
 
                 console.log(data);
                 const users = data.users;
@@ -283,8 +293,6 @@ function ViewJob() {
                 }
                 setitems([...stitems]);
                 setviewedItems([...stitems]);
-                await sleep(100);
-                
             } catch (error) {
                 console.log(error);
             }
@@ -293,7 +301,7 @@ function ViewJob() {
         return () => {
             dispatch(resetCurrentJob());
         }
-    },[dispatch, id, token]);
+    },[dispatch, history, id, token]);
 
     return (
         <div className='homepage_main' >
@@ -316,6 +324,15 @@ function ViewJob() {
                     styles={{root:{
                         overflowY: 'auto', height: '700px', overflowX: 'hidden'
                     }}}
+                    onColumnHeaderClick={(e, c) => {
+                        if (c.key === 'cvrank')
+                        {
+                            sortCVs();
+                        }
+                        else if(c.key === 'appliedat'){
+                            sortAppliedAt();
+                        }
+                    }}
                 />
 
             </div>
