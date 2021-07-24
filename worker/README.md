@@ -9,7 +9,13 @@
    1. Master url is the url of the backend to connect to, and send requests to.
    2. Email and password are the HR user email and password created at step 2
    3. Token expiry is how long the login token is valid before it's expired
-   4. To create a RabbitMQ user and give it permissions to read and write to public IP, refer to this [link](https://www.rabbitmq.com/access-control.html) 
+   4. To create a RabbitMQ user and give it permissions to read and write to public IP, refer to this [link](https://www.rabbitmq.com/access-control.html)  
+   The following commands will create a user with username: "test" and password "test" and grant him all the permissions to read and write in '/' vhost
+   ```shell
+   sudo rabbitmqctl add_user 'test' 'test'
+   sudo rabbitmqctl set_permissions -p "/" "test" ".*" ".*" ".*"
+   sudo rabbitmqctl set_user_tags test administrator
+   ```
 5. install the dependancies 
    ```shell
    pip install -r requirements.txt
