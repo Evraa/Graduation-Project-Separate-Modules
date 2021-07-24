@@ -238,7 +238,7 @@ function ViewJob() {
         }
         const fetchData = async() => {
             try {
-                const res1 = await fetch('http://localhost:3002/api/job/'+id+'/analyzeResumes', {
+                const res1 = await fetch(baseUrl+'/job/'+id+'/analyzeResumes', {
                     method: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + token
@@ -255,7 +255,7 @@ function ViewJob() {
                 var data;
                 var itr = 0;
                 do{
-                    const res = await fetch('http://localhost:3002/api/job/'+id+'/rankedApplicants', {
+                    const res = await fetch(baseUrl+'/job/'+id+'/rankedApplicants', {
                         method: 'GET',
                         headers: {
                             'Authorization': 'Bearer ' + token

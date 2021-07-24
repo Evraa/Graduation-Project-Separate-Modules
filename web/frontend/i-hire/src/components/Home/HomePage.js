@@ -13,7 +13,7 @@ const HomePage = ()=> {
     const ChevronUp = {iconName: 'ChevronUp'}
     const ChevronDown = {iconName: 'ChevronDown'}
 
-    const [viewJobsSection, setviewJobsSection] = useState(false)
+    const [viewJobsSection, setviewJobsSection] = useState(true)
     const [Jobs, setJobs] = useState([]);
     const dispatch = useDispatch();
 
