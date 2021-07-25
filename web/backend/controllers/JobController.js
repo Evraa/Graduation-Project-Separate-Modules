@@ -157,30 +157,31 @@ const getResumes = async (req, res) => {
 };
 
 const analyzeResumes = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        res.status(400).json({errors: errors.array()});
-        return;
+    try {
+        const job = await Job.findById(req.params.id);
+        if (job) {
+            const count = await Application.estimatedDocumentCount({
+                jobID: req.params.id, resume: {$exists: true}
+            });
+            if (count) {
+                const mBroker = await MessageBroker.getInstance();
+                mBroker.send(Buffer.from(JSON.stringify({
+                    type: "resumes",
+                    jobID: job._id,
+                    jobDescription: job.description
+                })));
+                res.json({msg: "Resumes is being processed"});
+            } else  {
+                res.status(400).json({msg: "No resumes for this job"});
+            }
+        } else {
+            res.status(404).json({errors: [{"msg": "Job is not found"}]});
+        }    
+    } catch (error) {
+        // console.error(error);
+        res.status(500).send();
     }
-    const job = await Job.findById(req.params.id);
-    if (job) {
-        const count = await Application.count({
-            jobID: req.params.id, resume: {$exists: true}
-        });
-        if (count) {
-            const mBroker = await MessageBroker.getInstance();
-            mBroker.send(Buffer.from(JSON.stringify({
-                type: "resumes",
-                jobID: job._id,
-                jobDescription: job.description
-            })));
-            res.json({msg: "Resumes is being processed"});
-        } else  {
-            res.status(400).json({msg: "No resumes for this job"});
-        }
-    } else {
-        res.status(404).json({errors: [{"msg": "Job is not found"}]});
-    }
+    
 };
 
 const verifyRankedApplicants = () => {

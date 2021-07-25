@@ -1,5 +1,6 @@
 const amqp = require('amqplib');
-const { execSync } = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const fs  = require('fs');
 const fetch = require('node-fetch');
 const { exit } = require('process');
@@ -137,7 +138,7 @@ const process_video = async (url, token) => {
                 return false;
             }
         }
-        execSync(`python ${CODE_PATH} -p=${url} -m=${MODEL_PATH} -ha=${HAAR_PATH}`);
+        const {stdout, stderr} = await exec(`python ${CODE_PATH} -p=${url} -m=${MODEL_PATH} -ha=${HAAR_PATH}`, );
         const fileBaseName = path.basename(url).split('.')[0];
         const outFileName = 'output/' + fileBaseName + '.json';
         const data =  JSON.parse(fs.readFileSync(outFileName));
@@ -163,7 +164,7 @@ const process_video = async (url, token) => {
         }
     } catch (err) {
         console.error(err);
-        throw new Error(err);
+        throw new Error("Error in processing video");
     }
     return false;
 };
@@ -208,7 +209,7 @@ const process_resumes = async (jobID, jobDescription, token) => {
         }
         
         fs.writeFileSync(JOB_FILE_NAME, jobDescription);
-        execSync(`python ${CODE_FILE_NAME} -p=${RESUME_FOLDER} -jd=${JOB_FILE_NAME} -rp=${OUT_FILE_NAME} -m=${MODEL_FILE_NAME}`);
+        const {stdout, stderr} = await exec(`python ${CODE_FILE_NAME} -p=${RESUME_FOLDER} -jd=${JOB_FILE_NAME} -rp=${OUT_FILE_NAME} -m=${MODEL_FILE_NAME}`);
         const results = JSON.parse(fs.readFileSync(OUT_FILE_NAME));
         if (!results.success) {
             console.log(results.error);
@@ -264,7 +265,7 @@ const process_answers = async (applicationID, token) => {
             throw new Error(`Couldn't fetch answers for application: ${applicationID}`);
         }
 
-        execSync(`python ${CODE_PATH} -p=${INPUT_PATH} -m=${MODEL_PATH} -rp=${OUTPUT_PATH}`);
+        const {stdout, stderr} = await exec(`python ${CODE_PATH} -p=${INPUT_PATH} -m=${MODEL_PATH} -rp=${OUTPUT_PATH}`);
         
         const data =  JSON.parse(fs.readFileSync(OUTPUT_PATH));
         if (!data.success) {

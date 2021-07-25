@@ -31,7 +31,7 @@ const view = async (req, res) => {
             res.status(404).json({errors: [{"msg": "Application is not found"}]});    
         }
     } catch(err) {
-        console.log(err);
+        // console.error(err);
         res.status(404).json({errors: [{"msg": "Invalid application ID"}]});    
     }
 };
