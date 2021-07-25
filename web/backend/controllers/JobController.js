@@ -160,7 +160,7 @@ const analyzeResumes = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
         if (job) {
-            const count = await Application.estimatedDocumentCount({
+            const count = await Application.countDocuments({
                 jobID: req.params.id, resume: {$exists: true}
             });
             if (count) {

@@ -40,7 +40,7 @@ function ViewProfile() {
             })
             const data = await res.json();
             setuser(data.user);
-            setisLoggedIn(data.user._id === currentUser._id);
+            if(currentUser && data.user) setisLoggedIn(data.user._id === currentUser._id);
 
         }
 
@@ -131,7 +131,7 @@ function ViewProfile() {
         }
     }
 
-    const applicationsSection = user.applications? user.applications.map(app => 
+    const applicationsSection = user && user.applications? user.applications.map(app => 
         <Stack 
             horizontal 
             horizontalAlign='space-between' 
@@ -162,10 +162,10 @@ function ViewProfile() {
                             <div 
                                 style= {{color: 'blue', fontWeight: 'bold', fontSize: '40px',}}
                             >
-                                {user.name}
+                                {user? user.name: null}
                             </div>
                             { 
-                                user.picture && 
+                                user && user.picture && 
                                 <img src={downloadUrl + user.picture} alt='profile' 
                                     style={{width: '200px', height: '200px'}}
                                 />
@@ -183,7 +183,7 @@ function ViewProfile() {
                     </Stack>
                 </div>
                 {
-                    (user.role === 'hr' || user.role === 'admin') &&
+                    user && (user.role === 'hr' || user.role === 'admin') &&
                     <div style={{paddingTop: '40px', paddingBootom: '40px', width:'90%'}}>
                         <div className='apply_job_title' onClick={()=>setviewJobsAppsSection(previousState => !previousState)}>
                             <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
@@ -210,7 +210,7 @@ function ViewProfile() {
                 }
 
                 {
-                    user.role === 'applicant' &&
+                    user && user.role === 'applicant' &&
                     <div style={{paddingTop: '40px', paddingBootom: '40px', width:'90%'}}>
                         <div className='apply_job_title' onClick={()=>setviewJobsAppsSection(previousState => !previousState)}>
                             <Stack horizontal className='apply_job_section' horizontalAlign='space-between'>
