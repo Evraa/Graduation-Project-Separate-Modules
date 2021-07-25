@@ -110,4 +110,4 @@ uploads
 models/resume_ranker_model/model/*
 
 #ignore output directory
-output
+output/*
